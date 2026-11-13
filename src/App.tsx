@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import {
   ArrowLeft, ArrowUpRight, Check, CheckCheck, ChevronDown, CircleHelp, Info,
   MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send, Settings2,
-  ShieldCheck, Smile, Sparkles, X,
+  ShieldCheck, Smile, Sparkles, X, CircleDot, UserRound,
 } from 'lucide-react';
 import { Avatar } from './components/Avatar';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -65,6 +65,7 @@ function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [mobileList, setMobileList] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'chats' | 'status'>('chats');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const messageEnd = useRef<HTMLDivElement>(null);
@@ -353,6 +354,17 @@ function App() {
         </> : <div className="no-active-chat"><div className="empty-illustration"><div className="empty-orbit orbit-one" /><div className="empty-orbit orbit-two" /><div className="empty-chat-icon"><MessageCircle size={34} /><span><Sparkles size={13} fill="currentColor" /></span></div><div className="float-bubble bubble-a"><span /></div><div className="float-bubble bubble-b"><span /><span /><span /></div></div><p className="eyebrow">A LITTLE SPACE FOR YOUR PEOPLE</p><h2>Good conversations<br />start with hello.</h2><p className="no-chat-copy">Pick a conversation on the left or make a new one. Your people are just a message away.</p><button className="primary-button" type="button" onClick={() => setShowNewChat(true)}><Plus size={17} /> Start a new chat</button><div className="quiet-trust"><ShieldCheck size={14} /> {demoMode ? 'Connect Firebase for real accounts and live chats' : 'Messages update in real time'}</div></div>}
       </section>
 
+      <nav className="mobile-bottom-nav" aria-label="Main navigation">
+        <button type="button" className={mobileTab === 'chats' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('chats'); setMobileList(true); }} aria-label="Chats">
+          <MessageCircle size={22} strokeWidth={2.2} /><span>Chats</span>
+        </button>
+        <button type="button" className={mobileTab === 'status' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('status'); setMobileList(true); document.querySelector('.stories-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} aria-label="Status">
+          <CircleDot size={22} strokeWidth={2.1} /><span>Status</span>
+        </button>
+        <button type="button" className="mobile-nav-item" onClick={() => setShowProfile(true)} aria-label="Profile">
+          <UserRound size={22} strokeWidth={2.1} /><span>Profile</span>
+        </button>
+      </nav>
       {showNewChat && <NewChatDialog onClose={() => setShowNewChat(false)} onStart={handleNewChat} demoMode={demoMode} contacts={demoUsers} />}
       {showProfile && <ProfileDialog profile={profile} onClose={() => setShowProfile(false)} onSave={handleSaveProfile} busy={busy} />}
       {notice && <div className="toast" role="status"><span className="toast-check"><Check size={14} /></span>{notice}<button type="button" aria-label="Dismiss" onClick={() => setNotice('')}><X size={15} /></button></div>}
