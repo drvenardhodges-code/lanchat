@@ -18,6 +18,15 @@ service cloud.firestore {
     // Phone numbers are kept in owner-only documents, never in the public profile directory.
     match /users/{uid} {
       allow read, create, update, delete: if signedIn() && request.auth.uid == uid;
+      match /blocked/{blockedUid} {
+        allow get, list: if signedIn() && request.auth.uid == uid;
+        allow create: if signedIn()
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['userId', 'createdAt'])
+          && request.resource.data.userId == blockedUid
+          && request.resource.data.createdAt is timestamp;
+        allow delete: if signedIn() && request.auth.uid == uid;
+      }
     }
 
     // Basic profiles, including an optional unverified phone number, are visible only to signed-in users.
@@ -35,11 +44,6 @@ service cloud.firestore {
         && (!('phoneNumber' in request.resource.data)
           || (request.resource.data.phoneNumber is string && request.resource.data.phoneNumber.size() <= 32));
       allow delete: if signedIn() && request.auth.uid == uid;
-      match /blocked/{blockedUid} {
-        allow get, list: if signedIn() && request.auth.uid == uid;
-        allow create: if signedIn() && request.auth.uid == uid && request.resource.data.keys().hasOnly(['userId', 'createdAt']) && request.resource.data.userId == blockedUid && request.resource.data.createdAt is timestamp;
-        allow delete: if signedIn() && request.auth.uid == uid;
-      }
     }
 
     // Legacy phone-OTP accounts can only write the index for their verified Firebase Auth phone claim.
