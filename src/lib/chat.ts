@@ -97,17 +97,47 @@ export function subscribeToThreads(uid: string, onChange: (threads: Thread[]) =>
 export function subscribeToMessages(chatId: string, onChange: (messages: ChatMessage[]) => void, onError: (error: Error) => void) {
   const firestore = requireDb();
   const messagesQuery = query(collection(firestore, 'chats', chatId, 'messages'), orderBy('createdAt', 'asc'), limit(150));
-  return onSnapshot(messagesQuery, async (snapshot) => {
-    try {
-      const messages = await Promise.all(snapshot.docs.map(async (entry) => {
-        const data = entry.data();
-        const reactionSnapshot = await getDocs(collection(firestore, 'chats', chatId, 'messages', entry.id, 'reactions'));
-        const reactions = reactionSnapshot.docs.map((reaction) => ({ userId: reaction.id, emoji: String(reaction.data().emoji ?? '') }));
-        return { id: entry.id, text: String(data.text ?? ''), senderId: String(data.senderId ?? ''), createdAt: toDate(data.createdAt), reactions };
-      }));
-      onChange(messages);
-    } catch (error) { onError(error instanceof Error ? error : new Error('Could not load reactions.')); }
+  const reactionStops = new Map<string, () => void>();
+  const reactionValues = new Map<string, { userId: string; emoji: string }[]>();
+  let latestMessages: ChatMessage[] = [];
+  const stopMessages = onSnapshot(messagesQuery, (snapshot) => {
+    const activeIds = new Set(snapshot.docs.map((entry) => entry.id));
+    for (const [messageId, stop] of reactionStops) {
+      if (!activeIds.has(messageId)) { stop(); reactionStops.delete(messageId); reactionValues.delete(messageId); }
+    }
+    latestMessages = snapshot.docs.map((entry) => {
+      const data = entry.data();
+      return {
+        id: entry.id,
+        text: String(data.text ?? ''),
+        senderId: String(data.senderId ?? ''),
+        createdAt: toDate(data.createdAt),
+        reactions: reactionValues.get(entry.id) ?? [],
+      };
+    });
+    onChange(latestMessages);
+    for (const entry of snapshot.docs) {
+      if (reactionStops.has(entry.id)) continue;
+      const reactionsRef = collection(firestore, 'chats', chatId, 'messages', entry.id, 'reactions');
+      const stop = onSnapshot(reactionsRef, (reactionSnapshot) => {
+        const reactions = reactionSnapshot.docs.map((reaction) => ({
+          userId: reaction.id,
+          emoji: String(reaction.data().emoji ?? ''),
+        }));
+        reactionValues.set(entry.id, reactions);
+        latestMessages = latestMessages.map((message) =>
+          message.id === entry.id ? { ...message, reactions } : message,
+        );
+        onChange(latestMessages);
+      }, onError);
+      reactionStops.set(entry.id, stop);
+    }
   }, onError);
+  return () => {
+    stopMessages();
+    for (const stop of reactionStops.values()) stop();
+    reactionStops.clear();
+  };
 }
 
 export async function sendChatMessage(chatId: string, senderId: string, text: string) {
