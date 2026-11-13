@@ -6,6 +6,7 @@ import {
   ShieldCheck, Smile, Sparkles, X,
 } from 'lucide-react';
 import { Avatar } from './components/Avatar';
+import { ThemeToggle } from './components/ThemeToggle';
 import { AuthGate } from './components/AuthGate';
 import { NewChatDialog } from './components/NewChatDialog';
 import { ProfileDialog } from './components/ProfileDialog';
@@ -285,7 +286,7 @@ function App() {
         <header className="inbox-header">
           <div className="wordmark-line">
             <div><p className="eyebrow">YOUR LITTLE CORNER</p><h1>Messages<span className="title-period">.</span></h1></div>
-            <button className="new-chat-button" type="button" onClick={() => setShowNewChat(true)} aria-label="Start a new chat"><Plus size={19} /><span>New chat</span></button>
+            <div className="inbox-header-actions"><ThemeToggle /><button className="new-chat-button" type="button" onClick={() => setShowNewChat(true)} aria-label="Start a new chat"><Plus size={19} /><span>New chat</span></button></div>
           </div>
           <label className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a conversation" aria-label="Search conversations" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} /></button>}<kbd>⌘ K</kbd></label>
           <div className="inbox-section-label"><span>RECENT CONVERSATIONS</span><button type="button" className="icon-quiet" aria-label="Conversation settings" onClick={() => showNotice('You’re all caught up.') }><Settings2 size={17} /></button></div>
@@ -310,7 +311,7 @@ function App() {
           <header className="chat-header">
             <button type="button" className="back-to-list" onClick={() => setMobileList(true)} aria-label="Back to conversations"><ArrowLeft size={19} /></button>
             <div className="chat-person"><Avatar profile={activeThread.peer} size="md" online={activeThread.peer.online} /><div><h2>{activeThread.peer.name}</h2><span className="person-status"><i className={activeThread.peer.online ? 'status-online' : ''} />{activeThread.peer.online ? 'Around right now' : 'On Lanchat'}</span></div></div>
-            <div className="chat-header-actions">
+            <div className="chat-header-actions"><ThemeToggle />
               {showMessageSearch && <input className="message-search-input" value={messageSearch} onChange={(event) => setMessageSearch(event.target.value)} placeholder="Search in chat" autoFocus />}
               <button type="button" className={`header-icon ${showMessageSearch ? 'header-icon-active' : ''}`} onClick={() => { setShowMessageSearch((value) => !value); setMessageSearch(''); }} aria-label="Search messages"><Search size={19} /></button>
               <button type="button" className={`header-icon ${showDetails ? 'header-icon-active' : ''}`} onClick={() => setShowDetails((value) => !value)} aria-label="Chat details"><Info size={19} /></button>
