@@ -68,10 +68,12 @@ export function subscribeToThreads(uid: string, onChange: (threads: Thread[]) =>
   const firestore = requireDb();
   const chatsQuery = query(collection(firestore, 'chats'), where('participants', 'array-contains', uid), orderBy('updatedAt', 'desc'), limit(80));
   return onSnapshot(chatsQuery, async (snapshot) => {
+    const blockedSnapshot = await getDocs(collection(firestore, 'users', uid, 'blocked'));
+    const blockedIds = new Set(blockedSnapshot.docs.map((entry) => entry.id));
     const result = await Promise.all(snapshot.docs.map(async (chatSnapshot) => {
       const data = chatSnapshot.data();
       const peerId = (data.participants as string[]).find((participant) => participant !== uid);
-      if (!peerId) return null;
+      if (!peerId || blockedIds.has(peerId)) return null;
       const peerSnapshot = await getDoc(doc(firestore, 'profiles', peerId));
       const peerProfile = peerSnapshot.exists() ? peerSnapshot.data() : {};
       const last = data.lastMessage as Record<string, unknown> | undefined;
