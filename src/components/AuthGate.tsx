@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { MessageCircle, ShieldCheck, Sparkles } from 'lucide-react';
 import { auth } from '../lib/firebase';
+import { ThemeToggle } from './ThemeToggle';
 import { normalizePhone, saveProfile } from '../lib/chat';
 
 type AuthMode = 'sign-in' | 'create-account';
@@ -87,7 +88,7 @@ export function AuthGate() {
     <div className="auth-skywash" />
     <div className="auth-layout">
       <section className="auth-story">
-        <div className="auth-brand"><span className="brand-mark"><MessageCircle size={22} strokeWidth={2.5} /><Sparkles size={9} className="brand-spark" /></span><span>lanchat<span className="title-period">.</span></span></div>
+        <div className="auth-brand"><span className="brand-mark"><MessageCircle size={22} strokeWidth={2.5} /><Sparkles size={9} className="brand-spark" /></span><span>lanchat<span className="title-period">.</span></span><ThemeToggle /></div>
         <div className="auth-story-copy"><span className="auth-overline"><span /> A LITTLE CLOSER, EVERY DAY</span><h1>Good things<br />are better<br /><span>shared.</span></h1><p>Your people, your moments, all in one lovely little place.</p></div>
         <div className="auth-story-art" aria-hidden="true"><div className="auth-art-orbit orbit-one" /><div className="auth-art-orbit orbit-two" /><span className="auth-art-main"><MessageCircle size={47} /></span><span className="auth-art-bubble bubble-a">hey! <Sparkles size={12} /></span><span className="auth-art-bubble bubble-b"><i /><i /><i /></span></div>
         <div className="auth-story-foot"><ShieldCheck size={15} />Email and password sign-in — no SMS needed.</div>
