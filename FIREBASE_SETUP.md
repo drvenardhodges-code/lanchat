@@ -30,6 +30,14 @@ The rules keep each account's Auth phone claim in its owner-only `users/{uid}` r
 
 Phone-number discovery is exact-match, not an address-book sync. Since a user can enter fictional/unverified profile data, it must not be treated as verified identity or for account recovery. Consider Firebase App Check and a server-mediated, rate-limited discovery endpoint before public launch.
 
+## 24-hour Stories
+
+Lanchat Stories use the existing Firestore database and the Cloudinary unsigned upload preset; Firebase Storage and a paid backend are not used. The app supports text-only stories and photo/video stories with an optional caption. Each story document stores its creation time and an expiry exactly 24 hours later. The app filters expired stories from the Stories bar and viewer, and only signed-in users can read stories. Users can delete their own stories sooner.
+
+Photo and video uploads use the Cloudinary `auto/upload` endpoint. Make sure the unsigned preset configured in `VITE_CLOUDINARY_UPLOAD_PRESET` allows the image and video formats you want (for example JPG, PNG, WEBP, MP4, MOV, and WEBM). The app currently limits each story media file to 15 MB on the client. Cloudinary unsigned presets are public client-side upload credentials, so restrict allowed formats in the preset and monitor your Cloudinary usage. Do not put a Cloudinary API secret in Vercel's `VITE_*` variables.
+
+Important: stories disappear from the Lanchat feed after 24 hours, but this free client-only implementation does not automatically purge old Firestore story documents or Cloudinary media files. Those old records are no longer displayed by the app; physical cleanup would require a separate cleanup workflow.
+
 ## Development/testing numbers and future OTP
 
 The current app does not use Phone Auth. To prepare a future phone-OTP development flow without sending real SMS, Firebase Console supports Phone Auth test numbers with configured fictional numbers and fixed test codes. They can be used only after a future phone-auth UI and provider setup are added; they are not required for the current email/password sign-in. When real OTP is introduced, link phone credentials to the existing Firebase Auth user rather than creating a second UID, so existing chats and profiles remain associated with the same account.
@@ -50,4 +58,5 @@ After Email/Password is enabled, create an account with an email and password. D
 - `phoneIndex/{normalized E.164 phone}` — legacy lookup for verified Firebase Phone Auth users; writes still require a matching verified Auth phone claim.
 - `chats/{sortedUid1__sortedUid2}` — two participant UIDs, latest message summary, and activity timestamps.
 - `chats/{chatId}/messages/{messageId}` — immutable message text, sender UID, and timestamp.
+- `stories/{storyId}` — signed-in-readable text/photo/video story metadata with a 24-hour expiry.
 - Profile photo files — uploaded to Cloudinary using the unsigned preset configured by `VITE_CLOUDINARY_CLOUD_NAME` and `VITE_CLOUDINARY_UPLOAD_PRESET`; only the resulting image URL is stored in `profiles/{uid}`.
