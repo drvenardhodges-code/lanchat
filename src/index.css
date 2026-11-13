@@ -768,3 +768,12 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 :root[data-theme="light"] .story-react-button { color:#6d28d9; border-color:#e6d8fa; background:#f6f0ff; }
 
 .new-message-indicator { display:inline-block; flex:0 0 8px; width:8px; height:8px; margin-left:auto; border-radius:50%; background:#a78bfa; box-shadow:0 0 10px rgba(167,139,250,.65); }
+
+
+/* Keep the WhatsApp-style tab bar on the conversation list, not inside a chat room. */
+@media (max-width: 640px) {
+  .app-shell:has(.chat-panel:not(.chat-panel-mobile-hidden)) .mobile-bottom-nav {
+    display: none !important;
+  }
+  .chat-panel:not(.chat-panel-mobile-hidden) { padding-bottom: 0 !important; }
+}
