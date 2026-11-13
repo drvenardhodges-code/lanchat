@@ -46,6 +46,32 @@ service cloud.firestore {
         && resource.data.uid == request.auth.uid;
     }
 
+    // Stories are visible to signed-in users only during their 24-hour lifetime.
+    match /stories/{storyId} {
+      allow get, list: if signedIn() && resource.data.expiresAt > request.time;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['userId', 'userName', 'userPhotoURL', 'text', 'mediaURL', 'mediaType', 'createdAt', 'expiresAt'])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.userName is string
+        && request.resource.data.userName.size() > 0
+        && request.resource.data.userName.size() <= 48
+        && request.resource.data.userPhotoURL is string
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.mediaURL is string
+        && request.resource.data.mediaURL.size() <= 2048
+        && request.resource.data.mediaType in ['text', 'image', 'video']
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(24, 'h')
+        && (request.resource.data.mediaType == 'text'
+          ? request.resource.data.mediaURL == ''
+          : request.resource.data.mediaURL.size() > 0);
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+    }
+
     match /chats/{chatId} {
       allow get, list: if signedIn() && request.auth.uid in resource.data.participants;
       allow create: if signedIn()
