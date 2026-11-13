@@ -115,12 +115,12 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
           }, { merge: true });
         }
         const [views, reactions, mine] = await Promise.all([
-          getDocs(collection(db!, 'stories', activeStory.id, 'views')),
+          activeStory.userId === user.uid ? getDocs(collection(db!, 'stories', activeStory.id, 'views')) : Promise.resolve(null),
           getDocs(collection(db!, 'stories', activeStory.id, 'reactions')),
           getDocs(query(collection(db!, 'stories', activeStory.id, 'reactions'), where('userId', '==', user.uid))),
         ]);
         if (!cancelled) {
-          setViewCount(views.size); setReactionCount(reactions.size); setHasReacted(!mine.empty);
+          setViewCount(views?.size ?? 0); setReactionCount(reactions.size); setHasReacted(!mine.empty);
         }
       } catch {
         if (!cancelled) onNotice('Could not load story views and reactions.');
