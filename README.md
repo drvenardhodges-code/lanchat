@@ -15,8 +15,9 @@ Lanchat remains wired to the existing Firebase web app `lanchat-ccf2a` and uses 
 - Firebase email/password registration, sign-in, and password reset.
 - Optional editable phone number in the user profile; fictional/test values do not trigger SMS or verification.
 - Realtime one-to-one chat list and message updates.
+- LANChat Stories: text, photo, and video posts that disappear from the app after 24 hours.
 - Exact country-code phone-number discovery for profiles that share a number.
 - Editable name, about text, and Cloudinary-hosted profile picture.
 - Responsive desktop/mobile conversation interface and local sample preview.
 
-Set `VITE_CLOUDINARY_CLOUD_NAME` and `VITE_CLOUDINARY_UPLOAD_PRESET` in your hosting environment (for example, Vercel) to enable profile-photo uploads. Use an unsigned Cloudinary upload preset. The Firebase browser configuration is public app configuration, not a server secret. Never add a Firebase service-account key to the client. Phone-index writes for legacy phone-auth accounts remain bound to the verified Firebase phone claim; current email/password accounts use the optional profile number. Each message plus its conversation preview is committed atomically. The rules, schema, phone privacy notes, and deployment steps are documented in [FIREBASE_SETUP.md](./FIREBASE_SETUP.md).
+Set `VITE_CLOUDINARY_CLOUD_NAME` and `VITE_CLOUDINARY_UPLOAD_PRESET` in your hosting environment (for example, Vercel) to enable profile-photo and story media uploads. Use an unsigned Cloudinary preset that allows the image/video formats you intend to accept. The Firebase browser configuration is public app configuration, not a server secret. Never add a Firebase service-account key to the client. Phone-index writes for legacy phone-auth accounts remain bound to the verified Firebase phone claim; current email/password accounts use the optional profile number. Each message plus its conversation preview is committed atomically. The rules, schema, phone privacy notes, and deployment steps are documented in [FIREBASE_SETUP.md](./FIREBASE_SETUP.md).
