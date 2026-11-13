@@ -12,9 +12,9 @@ In Firebase Console, open project `lanchat-ccf2a` and go to **Authentication →
 
 For a development profile, the optional phone field accepts fictional/test numbers. It is stored as self-reported profile data and is not proof of ownership. Use a country-code format such as `+14155550108` if you want other signed-in users to find that profile by number. The number is visible to signed-in Lanchat users because profile-based lookup is available. No SMS is sent.
 
-## Preserve Firestore, Storage, and chats
+## Preserve Firestore and chats
 
-Keep the existing Firestore and Storage data. Existing chats, messages, and profile documents are not deleted or rewritten by this auth change. Lanchat continues to use the same Firestore UID-based chat model, Storage avatar paths, realtime subscriptions, and atomic message/preview writes.
+Keep the existing Firestore data. Existing chats, messages, and profile documents are not deleted or rewritten. Lanchat continues to use the same Firestore UID-based chat model, realtime subscriptions, and atomic message/preview writes. New profile photos are uploaded directly to Cloudinary, and the returned secure image URL is saved in the user's Firestore profile.
 
 Firebase Auth accounts are identified by UID. This change does not merge an old phone-only Auth user into a new email/password account or rewrite chat participants. When phone OTP is introduced, add/link the phone credential to the signed-in email account (or provide a verified migration) rather than silently creating a second identity. Existing phone-only Auth users need that future linking path to sign into the same UID-based conversations; their Firestore records remain intact in the meantime.
 
@@ -23,7 +23,7 @@ If the Firestore rules or composite index in this repository have not already be
 ```sh
 firebase login
 firebase use --add
-firebase deploy --only firestore:rules,firestore:indexes,storage
+firebase deploy --only firestore:rules,firestore:indexes
 ```
 
 The rules keep each account's Auth phone claim in its owner-only `users/{uid}` record. Profile phone numbers are optional, capped at 32 characters, owner-editable, and visible only to signed-in users. Email/password profiles can be found by an exact normalized phone-number match. The legacy get-only `phoneIndex/{normalized E.164 phone}` remains for preexisting accounts authenticated with Firebase Phone Auth; new email/password profiles do not need a verified-phone claim to provide profile phone information.
@@ -41,7 +41,7 @@ pnpm install
 pnpm dev
 ```
 
-After Email/Password is enabled, create an account with an email and password. During registration, name and password are required; phone is optional. Users can later edit name, about, profile picture, and phone in **Edit profile**. If the Firebase configuration is absent, Lanchat uses the clearly labeled local sample preview.
+After Email/Password is enabled, create an account with an email and password. During registration, name and password are required; phone is optional. Users can later edit name, about, profile picture, and phone in **Edit profile**. Profile-picture uploads require a Cloudinary cloud name and unsigned upload preset in the deployment environment; Firebase Storage is not used for new avatar uploads. If the Firebase configuration is absent, Lanchat uses the clearly labeled local sample preview.
 
 ## Data layout
 
@@ -50,4 +50,4 @@ After Email/Password is enabled, create an account with an email and password. D
 - `phoneIndex/{normalized E.164 phone}` — legacy lookup for verified Firebase Phone Auth users; writes still require a matching verified Auth phone claim.
 - `chats/{sortedUid1__sortedUid2}` — two participant UIDs, latest message summary, and activity timestamps.
 - `chats/{chatId}/messages/{messageId}` — immutable message text, sender UID, and timestamp.
-- `avatars/{uid}/{filename}` — per-user image objects in Firebase Storage.
+- Profile photo files — uploaded to Cloudinary using the unsigned preset configured by `VITE_CLOUDINARY_CLOUD_NAME` and `VITE_CLOUDINARY_UPLOAD_PRESET`; only the resulting image URL is stored in `profiles/{uid}`.
