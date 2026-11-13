@@ -10,6 +10,7 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { AuthGate } from './components/AuthGate';
 import { NewChatDialog } from './components/NewChatDialog';
 import { ProfileDialog } from './components/ProfileDialog';
+import { StoriesBar } from './components/StoriesBar';
 import { firebaseConfigured, auth } from './lib/firebase';
 import {
   ensureUserProfile,
@@ -289,6 +290,7 @@ function App() {
             <div className="inbox-header-actions"><ThemeToggle /><button className="new-chat-button" type="button" onClick={() => setShowNewChat(true)} aria-label="Start a new chat"><Plus size={19} /><span>New chat</span></button></div>
           </div>
           <label className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a conversation" aria-label="Search conversations" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} /></button>}<kbd>⌘ K</kbd></label>
+          <StoriesBar user={firebaseUser ? { uid: firebaseUser.uid } : null} profile={profile} demoMode={demoMode} onNotice={showNotice} />
           <div className="inbox-section-label"><span>RECENT CONVERSATIONS</span><button type="button" className="icon-quiet" aria-label="Conversation settings" onClick={() => showNotice('You’re all caught up.') }><Settings2 size={17} /></button></div>
         </header>
         <div className="thread-list">
