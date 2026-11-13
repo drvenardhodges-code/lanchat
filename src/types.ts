@@ -12,6 +12,7 @@ export interface ChatMessage {
   text: string;
   senderId: string;
   createdAt: Date;
+  reactions?: { userId: string; emoji: string }[];
 }
 
 export interface Thread {
