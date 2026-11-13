@@ -64,7 +64,7 @@ function App() {
   const [showNewChat, setShowNewChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [mobileList, setMobileList] = useState(false);
+  const [mobileList, setMobileList] = useState(true);
   const [mobileTab, setMobileTab] = useState<'chats' | 'status'>('chats');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
@@ -77,6 +77,9 @@ function App() {
     if (!firebaseConfigured || !auth) return;
     const stopAuth = onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user);
+      setThreads([]);
+      setActiveId(null);
+      setMessages([]);
       if (!user) {
         setProfile(demoProfile);
         setThreads([]);
@@ -120,6 +123,10 @@ function App() {
   }, [demoMode, firebaseUser?.uid]);
 
   useEffect(() => {
+    if (activeId && !threads.some((thread) => thread.id === activeId)) {
+      setActiveId(threads[0]?.id ?? null);
+      return;
+    }
     if (!activeId && threads.length > 0) setActiveId(threads[0].id);
   }, [activeId, threads]);
 
@@ -241,6 +248,7 @@ function App() {
   }
 
   function openThread(threadId: string) {
+    setMobileTab('chats');
     setActiveId(threadId);
     setMobileList(false);
     setShowDetails(false);
@@ -291,7 +299,6 @@ function App() {
             <div className="inbox-header-actions"><ThemeToggle /><button className="new-chat-button" type="button" onClick={() => setShowNewChat(true)} aria-label="Start a new chat"><Plus size={19} /><span>New chat</span></button></div>
           </div>
           <label className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a conversation" aria-label="Search conversations" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} /></button>}<kbd>⌘ K</kbd></label>
-          <StoriesBar user={firebaseUser ? { uid: firebaseUser.uid } : null} profile={profile} demoMode={demoMode} onNotice={showNotice} />
           <div className="inbox-section-label"><span>RECENT CONVERSATIONS</span><button type="button" className="icon-quiet" aria-label="Conversation settings" onClick={() => showNotice('You’re all caught up.') }><Settings2 size={17} /></button></div>
         </header>
         <div className="thread-list">
@@ -305,7 +312,6 @@ function App() {
         </div>
         <footer className="inbox-footer">
           {demoMode && <button className="demo-connect-card" type="button" onClick={() => showNotice('Add your Firebase web app settings to .env — see FIREBASE_SETUP.md.') }><span className="demo-connect-icon"><Sparkles size={15} /></span><span><strong>Make it yours</strong><small>Connect your Firebase project</small></span><ArrowUpRight size={16} /></button>}
-          {profileMenu}
         </footer>
       </section>
 
@@ -354,11 +360,18 @@ function App() {
         </> : <div className="no-active-chat"><div className="empty-illustration"><div className="empty-orbit orbit-one" /><div className="empty-orbit orbit-two" /><div className="empty-chat-icon"><MessageCircle size={34} /><span><Sparkles size={13} fill="currentColor" /></span></div><div className="float-bubble bubble-a"><span /></div><div className="float-bubble bubble-b"><span /><span /><span /></div></div><p className="eyebrow">A LITTLE SPACE FOR YOUR PEOPLE</p><h2>Good conversations<br />start with hello.</h2><p className="no-chat-copy">Pick a conversation on the left or make a new one. Your people are just a message away.</p><button className="primary-button" type="button" onClick={() => setShowNewChat(true)}><Plus size={17} /> Start a new chat</button><div className="quiet-trust"><ShieldCheck size={14} /> {demoMode ? 'Connect Firebase for real accounts and live chats' : 'Messages update in real time'}</div></div>}
       </section>
 
+      <section className={`status-page ${mobileTab === 'status' ? 'status-page-open' : ''}`} aria-label="Status">
+        <header className="status-page-header">
+          <div><p className="eyebrow">MOMENTS THAT LAST 24 HOURS</p><h1>Status<span className="title-period">.</span></h1></div>
+          <ThemeToggle />
+        </header>
+        <StoriesBar user={firebaseUser ? { uid: firebaseUser.uid } : null} profile={profile} demoMode={demoMode} onNotice={showNotice} />
+      </section>
       <nav className="mobile-bottom-nav" aria-label="Main navigation">
         <button type="button" className={mobileTab === 'chats' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('chats'); setMobileList(true); }} aria-label="Chats">
           <MessageCircle size={22} strokeWidth={2.2} /><span>Chats</span>
         </button>
-        <button type="button" className={mobileTab === 'status' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('status'); setMobileList(true); document.querySelector('.stories-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} aria-label="Status">
+        <button type="button" className={mobileTab === 'status' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('status'); setMobileList(true); }} aria-label="Status">
           <CircleDot size={22} strokeWidth={2.1} /><span>Status</span>
         </button>
         <button type="button" className="mobile-nav-item" onClick={() => setShowProfile(true)} aria-label="Profile">
