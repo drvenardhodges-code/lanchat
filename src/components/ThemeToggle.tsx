@@ -18,12 +18,21 @@ export function ThemeToggle() {
     try { localStorage.setItem('lanchat-theme', theme); } catch { /* Storage is optional. */ }
   }, [theme]);
 
+  useEffect(() => {
+    const syncTheme = (event: Event) => setTheme((event as CustomEvent<Theme>).detail);
+    window.addEventListener('lanchat-theme-change', syncTheme);
+    return () => window.removeEventListener('lanchat-theme-change', syncTheme);
+  }, []);
+
   const next = theme === 'dark' ? 'light' : 'dark';
   return (
     <button
       type="button"
       className="theme-toggle"
-      onClick={() => setTheme(next)}
+      onClick={() => {
+        setTheme(next);
+        window.dispatchEvent(new CustomEvent<Theme>('lanchat-theme-change', { detail: next }));
+      }}
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
     >
