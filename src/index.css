@@ -636,3 +636,52 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
   .stories-track { gap: 12px; min-height: 74px; }
   .story-viewer { height: calc(100dvh - 20px); border-radius: 18px; }
 }
+
+
+/* WhatsApp-style mobile bottom navigation */
+.mobile-bottom-nav { display: none; }
+@media (max-width: 640px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    z-index: 45;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+    min-height: calc(66px + env(safe-area-inset-bottom));
+    padding: 7px 10px calc(7px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(167,139,250,.16);
+    background: rgba(17,12,29,.94);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+  }
+  .mobile-nav-item {
+    display: flex;
+    min-width: 0;
+    height: 52px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 0;
+    border-radius: 14px;
+    color: #9e91b4;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-nav-item span { font-size: 10px; font-weight: 700; letter-spacing: .01em; }
+  .mobile-nav-item.active { color: #c4b5fd; }
+  .mobile-nav-item.active svg { filter: drop-shadow(0 0 7px rgba(167,139,250,.55)); }
+  .inbox-panel { padding-bottom: 70px; }
+  .chat-panel { padding-bottom: 70px; }
+  :root[data-theme="light"] .mobile-bottom-nav {
+    border-top-color: #eee7f8;
+    background: rgba(255,255,255,.94);
+  }
+  :root[data-theme="light"] .mobile-nav-item { color: #8b7b9f; }
+  :root[data-theme="light"] .mobile-nav-item.active { color: #7c3aed; }
+}
