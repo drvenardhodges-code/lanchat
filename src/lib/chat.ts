@@ -73,7 +73,7 @@ export function subscribeToThreads(uid: string, onChange: (threads: Thread[]) =>
       const peerId = (data.participants as string[]).find((participant) => participant !== uid);
       if (!peerId) return null;
       const peerSnapshot = await getDoc(doc(firestore, 'profiles', peerId));
-      if (!peerSnapshot.exists()) return null;
+      const peerProfile = peerSnapshot.exists() ? peerSnapshot.data() : {};
       const last = data.lastMessage as Record<string, unknown> | undefined;
       const lastMessage = last?.text ? {
         id: 'last-message',
@@ -83,7 +83,7 @@ export function subscribeToThreads(uid: string, onChange: (threads: Thread[]) =>
       } satisfies ChatMessage : null;
       return {
         id: chatSnapshot.id,
-        peer: profileFrom(peerId, peerSnapshot.data()),
+        peer: profileFrom(peerId, peerProfile),
         lastMessage,
         updatedAt: toDate(data.updatedAt),
       } satisfies Thread;
