@@ -15,22 +15,25 @@ service cloud.firestore {
       allow read, create, update, delete: if signedIn() && request.auth.uid == uid;
     }
 
-    // Names, about text, and avatar URLs are visible only to signed-in Lanchat users.
+    // Basic profiles, including an optional unverified phone number, are visible only to signed-in users.
     match /profiles/{uid} {
       allow read: if signedIn();
       allow create, update: if signedIn()
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['uid', 'name', 'about', 'photoURL', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'about', 'photoURL', 'phoneNumber', 'updatedAt'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 48
         && request.resource.data.about is string
         && request.resource.data.about.size() <= 140
-        && request.resource.data.photoURL is string;
+        && request.resource.data.photoURL is string
+        && (!('phoneNumber' in request.resource.data)
+          || (request.resource.data.phoneNumber is string && request.resource.data.phoneNumber.size() <= 32));
       allow delete: if signedIn() && request.auth.uid == uid;
     }
 
-    // Each user can write only the index entry for their verified Firebase phone-number claim.
+    // Legacy phone-OTP accounts can only write the index for their verified Firebase Auth phone claim.
+    // Email/password users are discovered through the optional phoneNumber profile field instead.
     match /phoneIndex/{phoneNumber} {
       allow get: if signedIn();
       allow list: if false;

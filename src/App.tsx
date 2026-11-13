@@ -13,6 +13,7 @@ import { firebaseConfigured, auth } from './lib/firebase';
 import {
   ensureUserProfile,
   getChatByPhone,
+  normalizePhone,
   saveProfile,
   sendChatMessage,
   subscribeToMessages,
@@ -207,7 +208,7 @@ function App() {
     setMobileList(false);
   }
 
-  async function handleSaveProfile(next: Pick<Profile, 'name' | 'about'>, image?: File | null) {
+  async function handleSaveProfile(next: Pick<Profile, 'name' | 'about' | 'phoneNumber'>, image?: File | null) {
     if (demoMode) {
       let photoURL = profile.photoURL;
       if (image) photoURL = await new Promise<string>((resolve, reject) => {
@@ -216,7 +217,7 @@ function App() {
         reader.onerror = () => reject(new Error('Could not read that image.'));
         reader.readAsDataURL(image);
       });
-      setProfile((current) => ({ ...current, ...next, photoURL }));
+      setProfile((current) => ({ ...current, ...next, phoneNumber: normalizePhone(next.phoneNumber), photoURL }));
       setShowProfile(false);
       showNotice('Your profile was updated in this preview.');
       return;
@@ -226,7 +227,7 @@ function App() {
     try {
       const photoURL = image ? await uploadAvatar(firebaseUser.uid, image) : profile.photoURL;
       await saveProfile(firebaseUser, { ...next, photoURL });
-      setProfile((current) => ({ ...current, ...next, photoURL }));
+      setProfile((current) => ({ ...current, ...next, phoneNumber: normalizePhone(next.phoneNumber), photoURL }));
       setShowProfile(false);
       showNotice('Profile updated.');
     } catch (error) {

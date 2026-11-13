@@ -1,5 +1,5 @@
 import {
-  collection, doc, getDoc, limit, onSnapshot, orderBy, query,
+  collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query,
   serverTimestamp, setDoc, where, writeBatch,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
@@ -31,7 +31,7 @@ function toDate(value: unknown) {
 function profileFrom(uid: string, data: Record<string, unknown>, phoneNumber = ''): Profile {
   return {
     uid,
-    phoneNumber,
+    phoneNumber: String(data.phoneNumber ?? phoneNumber),
     name: String(data.name ?? 'Lanchat friend'),
     about: String(data.about ?? 'Available'),
     photoURL: String(data.photoURL ?? ''),
@@ -55,8 +55,12 @@ export async function ensureUserProfile(user: User): Promise<Profile> {
       name: user.displayName ?? 'New Lanchat friend',
       about: 'Available',
       photoURL: user.photoURL ?? '',
+      phoneNumber: normalizePhone(phoneNumber),
       updatedAt: serverTimestamp(),
     });
+    profileSnapshot = await getDoc(profileRef);
+  } else if (!profileSnapshot.data().phoneNumber && phoneNumber) {
+    await setDoc(profileRef, { phoneNumber: normalizePhone(phoneNumber), updatedAt: serverTimestamp() }, { merge: true });
     profileSnapshot = await getDoc(profileRef);
   }
 
@@ -125,11 +129,22 @@ export async function getChatByPhone(currentUid: string, phone: string): Promise
     throw new Error('Enter the phone number with its country code, for example +14155550108.');
   }
   const indexSnapshot = await getDoc(doc(firestore, 'phoneIndex', normalized));
-  if (!indexSnapshot.exists()) throw new Error('No Lanchat account is registered with that number.');
-  const peerId = String(indexSnapshot.data().uid ?? '');
-  if (!peerId || peerId === currentUid) throw new Error(peerId === currentUid ? 'That is your own number.' : 'Could not find that account.');
-  const peerSnapshot = await getDoc(doc(firestore, 'profiles', peerId));
-  if (!peerSnapshot.exists()) throw new Error('That Lanchat profile is not available.');
+  let peerId = indexSnapshot.exists() ? String(indexSnapshot.data().uid ?? '') : '';
+  let peerData: Record<string, unknown> | undefined;
+  if (peerId) {
+    const legacyProfile = await getDoc(doc(firestore, 'profiles', peerId));
+    if (legacyProfile.exists()) peerData = legacyProfile.data();
+  }
+  if (!peerData) {
+    const matchingProfiles = await getDocs(query(collection(firestore, 'profiles'), where('phoneNumber', '==', normalized), limit(1)));
+    const match = matchingProfiles.docs[0];
+    if (match) {
+      peerId = match.id;
+      peerData = match.data();
+    }
+  }
+  if (!peerId || !peerData) throw new Error('No Lanchat account is registered with that profile number.');
+  if (peerId === currentUid) throw new Error('That is your own number.');
 
   const participants = [currentUid, peerId].sort();
   const chatId = participants.join('__');
@@ -140,18 +155,19 @@ export async function getChatByPhone(currentUid: string, phone: string): Promise
   }
   return {
     id: chatId,
-    peer: profileFrom(peerId, peerSnapshot.data(), normalized),
+    peer: profileFrom(peerId, peerData, normalized),
     lastMessage: null,
     updatedAt: new Date(),
   };
 }
 
-export async function saveProfile(user: User, profile: Pick<Profile, 'name' | 'about' | 'photoURL'>) {
+export async function saveProfile(user: User, profile: Pick<Profile, 'name' | 'about' | 'photoURL' | 'phoneNumber'>) {
   const firestore = requireDb();
   const phoneNumber = user.phoneNumber ?? '';
   await setDoc(doc(firestore, 'profiles', user.uid), {
     uid: user.uid,
     ...profile,
+    phoneNumber: normalizePhone(profile.phoneNumber),
     updatedAt: serverTimestamp(),
   }, { merge: true });
   if (phoneNumber) {
