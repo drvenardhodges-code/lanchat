@@ -3,18 +3,12 @@ import {
   serverTimestamp, setDoc, where, writeBatch,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { db } from './firebase';
 import type { ChatMessage, Profile, Thread } from '../types';
 
 function requireDb() {
   if (!db) throw new Error('Firebase Firestore is not configured.');
   return db;
-}
-
-function requireStorage() {
-  if (!storage) throw new Error('Firebase Storage is not configured.');
-  return storage;
 }
 
 export function normalizePhone(phone: string) {
@@ -176,11 +170,26 @@ export async function saveProfile(user: User, profile: Pick<Profile, 'name' | 'a
 }
 
 export async function uploadAvatar(uid: string, file: File) {
-  const bucket = requireStorage();
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME?.trim();
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET?.trim();
+  if (!cloudName || !uploadPreset) {
+    throw new Error('Profile photo uploads are not configured yet. Add the Cloudinary cloud name and unsigned upload preset to Vercel.');
+  }
   if (!file.type.startsWith('image/')) throw new Error('Choose an image file for your profile photo.');
   if (file.size > 5 * 1024 * 1024) throw new Error('Profile pictures must be 5 MB or smaller.');
-  const extension = file.name.split('.').pop()?.replace(/[^a-z0-9]/gi, '') || 'jpg';
-  const avatarRef = ref(bucket, `avatars/${uid}/profile-${Date.now()}.${extension}`);
-  await uploadBytes(avatarRef, file, { contentType: file.type });
-  return getDownloadURL(avatarRef);
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', uploadPreset);
+  formData.append('folder', `lanchat/avatars/${uid}`);
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+  const result = await response.json() as { secure_url?: string; error?: { message?: string } };
+  if (!response.ok || !result.secure_url) {
+    throw new Error(result.error?.message || 'The profile photo could not be uploaded. Check the Cloudinary upload preset and try again.');
+  }
+  return result.secure_url;
 }
