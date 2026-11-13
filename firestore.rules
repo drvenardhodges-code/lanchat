@@ -10,6 +10,11 @@ service cloud.firestore {
         && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
     }
 
+    function participantsNotBlocked(participants) {
+      return !exists(/databases/$(database)/documents/users/$(participants[0])/blocked/$(participants[1]))
+        && !exists(/databases/$(database)/documents/users/$(participants[1])/blocked/$(participants[0]));
+    }
+
     // Phone numbers are kept in owner-only documents, never in the public profile directory.
     match /users/{uid} {
       allow read, create, update, delete: if signedIn() && request.auth.uid == uid;
@@ -115,6 +120,7 @@ service cloud.firestore {
         && request.auth.uid in request.resource.data.participants
         && request.resource.data.participants is list
         && request.resource.data.participants.size() == 2
+        && participantsNotBlocked(request.resource.data.participants)
         && request.resource.data.keys().hasOnly(['participants', 'createdAt', 'updatedAt', 'lastMessage']);
       allow update: if signedIn()
         && request.auth.uid in resource.data.participants
@@ -125,6 +131,7 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow get, list: if isChatMember(chatId);
         allow create: if isChatMember(chatId)
+          && participantsNotBlocked(get(/databases/$(database)/documents/chats/$(chatId)).data.participants)
           && request.resource.data.keys().hasOnly(['text', 'senderId', 'createdAt'])
           && request.resource.data.senderId == request.auth.uid
           && request.resource.data.text is string
