@@ -68,29 +68,33 @@ export function subscribeToThreads(uid: string, onChange: (threads: Thread[]) =>
   const firestore = requireDb();
   const chatsQuery = query(collection(firestore, 'chats'), where('participants', 'array-contains', uid), orderBy('updatedAt', 'desc'), limit(80));
   return onSnapshot(chatsQuery, async (snapshot) => {
-    const blockedSnapshot = await getDocs(collection(firestore, 'users', uid, 'blocked'));
-    const blockedIds = new Set(blockedSnapshot.docs.map((entry) => entry.id));
-    const result = await Promise.all(snapshot.docs.map(async (chatSnapshot) => {
-      const data = chatSnapshot.data();
-      const peerId = (data.participants as string[]).find((participant) => participant !== uid);
-      if (!peerId || blockedIds.has(peerId)) return null;
-      const peerSnapshot = await getDoc(doc(firestore, 'profiles', peerId));
-      const peerProfile = peerSnapshot.exists() ? peerSnapshot.data() : {};
-      const last = data.lastMessage as Record<string, unknown> | undefined;
-      const lastMessage = last?.text ? {
-        id: 'last-message',
-        text: String(last.text),
-        senderId: String(last.senderId ?? ''),
-        createdAt: toDate(last.createdAt),
-      } satisfies ChatMessage : null;
-      return {
-        id: chatSnapshot.id,
-        peer: profileFrom(peerId, peerProfile),
-        lastMessage,
-        updatedAt: toDate(data.updatedAt),
-      } satisfies Thread;
-    }));
-    onChange(result.filter((thread): thread is Thread => thread !== null));
+    try {
+      const blockedSnapshot = await getDocs(collection(firestore, 'users', uid, 'blocked'));
+      const blockedIds = new Set(blockedSnapshot.docs.map((entry) => entry.id));
+      const result = await Promise.all(snapshot.docs.map(async (chatSnapshot) => {
+        const data = chatSnapshot.data();
+        const peerId = (data.participants as string[]).find((participant) => participant !== uid);
+        if (!peerId || blockedIds.has(peerId)) return null;
+        const peerSnapshot = await getDoc(doc(firestore, 'profiles', peerId));
+        const peerProfile = peerSnapshot.exists() ? peerSnapshot.data() : {};
+        const last = data.lastMessage as Record<string, unknown> | undefined;
+        const lastMessage = last?.text ? {
+          id: 'last-message',
+          text: String(last.text),
+          senderId: String(last.senderId ?? ''),
+          createdAt: toDate(last.createdAt),
+        } satisfies ChatMessage : null;
+        return {
+          id: chatSnapshot.id,
+          peer: profileFrom(peerId, peerProfile),
+          lastMessage,
+          updatedAt: toDate(data.updatedAt),
+        } satisfies Thread;
+      }));
+      onChange(result.filter((thread): thread is Thread => thread !== null));
+    } catch (error) {
+      onError(error instanceof Error ? error : new Error('Could not restore your conversations.'));
+    }
   }, (error) => onError(error));
 }
 
