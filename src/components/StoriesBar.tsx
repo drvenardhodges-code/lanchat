@@ -238,7 +238,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
             <button type="button" className="story-nav story-nav-next" onClick={nextStory} aria-label="Next story"><ChevronRight size={24} /></button>
           </div>
           <footer className="story-engagement">
-            <span className="story-engagement-count"><Heart size={16} /> {reactionCount}</span>
+            <span className="story-engagement-count"><Heart size={16} /> {reactionCount} likes</span>
             {activeStory.userId === user?.uid && <span className="story-engagement-count"><Eye size={16} /> {viewCount} views</span>}
             {activeStory.userId !== user?.uid && <button type="button" className={hasReacted ? 'story-react-button story-reacted' : 'story-react-button'} onClick={() => void toggleReaction()} aria-label={hasReacted ? 'Remove reaction' : 'React to story'}><Heart size={18} fill={hasReacted ? 'currentColor' : 'none'} /> {hasReacted ? 'Liked' : 'React'}</button>}
           </footer>
