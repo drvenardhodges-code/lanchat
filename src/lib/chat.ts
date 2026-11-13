@@ -95,11 +95,16 @@ export function subscribeToThreads(uid: string, onChange: (threads: Thread[]) =>
 export function subscribeToMessages(chatId: string, onChange: (messages: ChatMessage[]) => void, onError: (error: Error) => void) {
   const firestore = requireDb();
   const messagesQuery = query(collection(firestore, 'chats', chatId, 'messages'), orderBy('createdAt', 'asc'), limit(150));
-  return onSnapshot(messagesQuery, (snapshot) => {
-    onChange(snapshot.docs.map((entry) => {
-      const data = entry.data();
-      return { id: entry.id, text: String(data.text ?? ''), senderId: String(data.senderId ?? ''), createdAt: toDate(data.createdAt) };
-    }));
+  return onSnapshot(messagesQuery, async (snapshot) => {
+    try {
+      const messages = await Promise.all(snapshot.docs.map(async (entry) => {
+        const data = entry.data();
+        const reactionSnapshot = await getDocs(collection(firestore, 'chats', chatId, 'messages', entry.id, 'reactions'));
+        const reactions = reactionSnapshot.docs.map((reaction) => ({ userId: reaction.id, emoji: String(reaction.data().emoji ?? '') }));
+        return { id: entry.id, text: String(data.text ?? ''), senderId: String(data.senderId ?? ''), createdAt: toDate(data.createdAt), reactions };
+      }));
+      onChange(messages);
+    } catch (error) { onError(error instanceof Error ? error : new Error('Could not load reactions.')); }
   }, onError);
 }
 
@@ -234,8 +239,12 @@ export async function reactToMessage(chatId: string, messageId: string, uid: str
   else await setDoc(reactionRef, { userId: uid, emoji, createdAt: serverTimestamp() });
 }
 
-export async function deleteChatMessage(chatId: string, messageId: string) {
-  await deleteDoc(doc(requireDb(), 'chats', chatId, 'messages', messageId));
+export async function deleteChatMessage(chatId: string, messageId: string, uid: string) {
+  const firestore = requireDb();
+  const messageRef = doc(firestore, 'chats', chatId, 'messages', messageId);
+  const message = await getDoc(messageRef);
+  if (!message.exists() || message.data().senderId !== uid) throw new Error('You can only delete your own messages.');
+  await deleteDoc(messageRef);
 }
 
 export async function blockChatUser(uid: string, peerId: string) {
