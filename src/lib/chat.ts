@@ -1,5 +1,5 @@
 import {
-  collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query,
+  collection, deleteDoc, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query,
   serverTimestamp, setDoc, where, writeBatch,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
@@ -223,4 +223,25 @@ export async function uploadStoryMedia(uid: string, file: File) {
     throw new Error(result.error?.message || 'Story media upload failed. Check that your unsigned Cloudinary preset allows image and video uploads.');
   }
   return result.secure_url;
+}
+
+
+export async function reactToMessage(chatId: string, messageId: string, uid: string, emoji: string) {
+  const firestore = requireDb();
+  const reactionRef = doc(firestore, 'chats', chatId, 'messages', messageId, 'reactions', uid);
+  const existing = await getDoc(reactionRef);
+  if (existing.exists() && existing.data().emoji === emoji) await deleteDoc(reactionRef);
+  else await setDoc(reactionRef, { userId: uid, emoji, createdAt: serverTimestamp() });
+}
+
+export async function deleteChatMessage(chatId: string, messageId: string) {
+  await deleteDoc(doc(requireDb(), 'chats', chatId, 'messages', messageId));
+}
+
+export async function blockChatUser(uid: string, peerId: string) {
+  await setDoc(doc(requireDb(), 'users', uid, 'blocked', peerId), { userId: peerId, createdAt: serverTimestamp() });
+}
+
+export async function reportChatUser(uid: string, peerId: string, reason: string) {
+  await setDoc(doc(collection(requireDb(), 'reports')), { reporterId: uid, reportedUserId: peerId, reason, createdAt: serverTimestamp(), status: 'new' });
 }
