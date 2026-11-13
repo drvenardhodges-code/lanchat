@@ -106,18 +106,19 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       setViewCount(0); setReactionCount(0); setHasReacted(false);
       return;
     }
+    const firestore = db;
     let cancelled = false;
     const loadEngagement = async () => {
       try {
         if (activeStory.userId !== user.uid) {
-          await setDoc(doc(db, 'stories', activeStory.id, 'views', user.uid), {
+          await setDoc(doc(firestore, 'stories', activeStory.id, 'views', user.uid), {
             userId: user.uid, userName: profile.name, viewedAt: Timestamp.now(),
           }, { merge: true });
         }
         const [views, reactions, mine] = await Promise.all([
-          activeStory.userId === user.uid ? getDocs(collection(db!, 'stories', activeStory.id, 'views')) : Promise.resolve(null),
-          getDocs(collection(db!, 'stories', activeStory.id, 'reactions')),
-          getDocs(query(collection(db!, 'stories', activeStory.id, 'reactions'), where('userId', '==', user.uid))),
+          activeStory.userId === user.uid ? getDocs(collection(firestore, 'stories', activeStory.id, 'views')) : Promise.resolve(null),
+          getDocs(collection(firestore, 'stories', activeStory.id, 'reactions')),
+          getDocs(query(collection(firestore, 'stories', activeStory.id, 'reactions'), where('userId', '==', user.uid))),
         ]);
         if (!cancelled) {
           setViewCount(views?.size ?? 0); setReactionCount(reactions.size); setHasReacted(!mine.empty);
