@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import {
-  ArrowLeft, ArrowUpRight, Check, CheckCheck, ChevronDown, CircleHelp, Info,
+  ArrowLeft, ArrowUpRight, Check, CheckCheck, CircleHelp, Info,
   MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send, Settings2,
   ShieldCheck, Smile, Sparkles, X, CircleDot, UserRound,
 } from 'lucide-react';
@@ -259,14 +259,6 @@ function App() {
   async function handleSignOut() {
     if (auth) await signOut(auth);
   }
-
-  const profileMenu = (
-    <button className="profile-shortcut" type="button" onClick={() => setShowProfile(true)} aria-label="Edit your profile">
-      <Avatar profile={profile} size="sm" />
-      <span className="profile-shortcut-copy"><strong>{profile.name}</strong><small>Edit profile</small></span>
-      <ChevronDown size={15} />
-    </button>
-  );
 
   if (!demoMode && !firebaseUser) {
     return <AuthGate />;
