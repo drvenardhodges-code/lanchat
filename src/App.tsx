@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import {
   ArrowLeft, ArrowUpRight, Check, CheckCheck, CircleHelp, Info,
   MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send, Settings2,
-  ShieldCheck, Smile, Sparkles, X, CircleDot, UserRound,
+  ShieldCheck, Smile, Sparkles, X, CircleDot, UserRound, Ban, Flag, Trash2, MoreVertical,
 } from 'lucide-react';
 import { Avatar } from './components/Avatar';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -21,6 +21,10 @@ import {
   subscribeToMessages,
   subscribeToThreads,
   uploadAvatar,
+  reactToMessage,
+  deleteChatMessage,
+  blockChatUser,
+  reportChatUser,
 } from './lib/chat';
 import { demoMessages, demoProfile, demoThreads, demoUsers } from './lib/demo';
 import type { ChatMessage, Profile, Thread } from './types';
@@ -64,11 +68,15 @@ function App() {
   const [showNewChat, setShowNewChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showChatMenu, setShowChatMenu] = useState(false);
+  const [showPeerProfile, setShowPeerProfile] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [mobileList, setMobileList] = useState(true);
   const [mobileTab, setMobileTab] = useState<'chats' | 'status'>('chats');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const messageEnd = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<number | null>(null);
 
   const demoMode = !firebaseConfigured;
   const activeThread = threads.find((thread) => thread.id === activeId) ?? null;
@@ -256,6 +264,34 @@ function App() {
     setShowMessageSearch(false);
   }
 
+  async function handleMessageReaction(messageId: string, emoji: string) {
+    if (demoMode || !firebaseUser || !activeThread) { showNotice('Reactions are available in a connected chat.'); return; }
+    try { await reactToMessage(activeThread.id, messageId, firebaseUser.uid, emoji); setSelectedMessageId(null); }
+    catch (error) { showNotice(error instanceof Error ? error.message : 'Reaction could not be saved.'); }
+  }
+
+  async function handleDeleteMessage(message: ChatMessage) {
+    if (!firebaseUser || !activeThread || message.senderId !== firebaseUser.uid) return;
+    if (demoMode) { setMessages((current) => current.filter((item) => item.id !== message.id)); setSelectedMessageId(null); return; }
+    try { await deleteChatMessage(activeThread.id, message.id, firebaseUser.uid); setSelectedMessageId(null); showNotice('Message deleted.'); }
+    catch (error) { showNotice(error instanceof Error ? error.message : 'Message could not be deleted.'); }
+  }
+
+  async function handleBlockUser() {
+    if (!firebaseUser || !activeThread || demoMode) { showNotice('Blocking is available in connected accounts.'); return; }
+    if (!window.confirm('Block ' + activeThread.peer.name + '?')) return;
+    try { await blockChatUser(firebaseUser.uid, activeThread.peer.uid); setShowChatMenu(false); setShowPeerProfile(false); setMobileList(true); setActiveId(null); showNotice('User blocked.'); }
+    catch (error) { showNotice(error instanceof Error ? error.message : 'Could not block this user.'); }
+  }
+
+  async function handleReportUser() {
+    if (!firebaseUser || !activeThread || demoMode) { showNotice('Reporting is available in connected accounts.'); return; }
+    const reason = window.prompt('Why are you reporting this user?');
+    if (!reason || !reason.trim()) return;
+    try { await reportChatUser(firebaseUser.uid, activeThread.peer.uid, reason.trim()); setShowChatMenu(false); showNotice('Report submitted. Thank you for helping keep Lanchat safe.'); }
+    catch (error) { showNotice(error instanceof Error ? error.message : 'Report could not be submitted.'); }
+  }
+
   async function handleSignOut() {
     if (auth) await signOut(auth);
   }
@@ -311,14 +347,14 @@ function App() {
         {activeThread ? <>
           <header className="chat-header">
             <button type="button" className="back-to-list" onClick={() => setMobileList(true)} aria-label="Back to conversations"><ArrowLeft size={19} /></button>
-            <div className="chat-person"><Avatar profile={activeThread.peer} size="md" online={activeThread.peer.online} /><div><h2>{activeThread.peer.name}</h2><span className="person-status"><i className={activeThread.peer.online ? 'status-online' : ''} />{activeThread.peer.online ? 'Around right now' : 'On Lanchat'}</span></div></div>
+            <button type="button" className="chat-person chat-person-clickable" onClick={() => setShowPeerProfile(true)} aria-label="View contact profile"><Avatar profile={activeThread.peer} size="md" online={activeThread.peer.online} /><div><h2>{activeThread.peer.name}</h2><span className="person-status"><i className={activeThread.peer.online ? 'status-online' : ''} />{activeThread.peer.online ? 'Around right now' : 'On Lanchat'}</span></div></button>
             <div className="chat-header-actions"><ThemeToggle />
               {showMessageSearch && <input className="message-search-input" value={messageSearch} onChange={(event) => setMessageSearch(event.target.value)} placeholder="Search in chat" autoFocus />}
               <button type="button" className={`header-icon ${showMessageSearch ? 'header-icon-active' : ''}`} onClick={() => { setShowMessageSearch((value) => !value); setMessageSearch(''); }} aria-label="Search messages"><Search size={19} /></button>
               <button type="button" className={`header-icon ${showDetails ? 'header-icon-active' : ''}`} onClick={() => setShowDetails((value) => !value)} aria-label="Chat details"><Info size={19} /></button>
               <span className="action-separator" />
               <button type="button" className="call-button" onClick={() => showNotice('Voice calls are not included in this version.')} aria-label="Voice call"><Phone size={17} /></button>
-              <button type="button" className="header-icon more-button" onClick={() => showNotice('This is a one-to-one chat.')} aria-label="More chat options"><MoreHorizontal size={21} /></button>
+              <div className="chat-menu-wrap"><button type="button" className="header-icon more-button" onClick={() => setShowChatMenu((value) => !value)} aria-label="More chat options"><MoreVertical size={21} /></button>{showChatMenu && <div className="chat-options-menu"><button type="button" onClick={() => { setShowChatMenu(false); setShowPeerProfile(true); }}><UserRound size={16} /> View profile</button><button type="button" onClick={handleBlockUser}><Ban size={16} /> Block user</button><button type="button" onClick={handleReportUser}><Flag size={16} /> Report user</button></div>}</div>
             </div>
           </header>
           {demoMode && <div className="preview-ribbon"><span><Sparkles size={13} /> SAMPLE PREVIEW</span><span>Connect Firebase to send messages between real accounts.</span><button type="button" onClick={() => showNotice('Add Firebase configuration and read FIREBASE_SETUP.md to connect the app.')}>Setup <ArrowUpRight size={12} /></button></div>}
@@ -333,7 +369,7 @@ function App() {
                   {newDay && <div className="day-divider"><span>{messageDay(message.createdAt)}</span></div>}
                   <div className={`message-row ${own ? 'message-row-own' : ''}`} style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
                   {!own && <Avatar profile={activeThread.peer} size="xs" />}
-                  <div className={`message-bubble ${own ? 'message-bubble-own' : ''}`}><p>{message.text}</p><div className="message-meta"><time>{messageTime(message.createdAt)}</time>{own && <CheckCheck size={14} className="message-check" />}</div></div>
+                  <div className={`message-bubble ${own ? 'message-bubble-own' : ''}`} onContextMenu={(event) => { event.preventDefault(); setSelectedMessageId(message.id); }} onTouchStart={() => { longPressTimer.current = window.setTimeout(() => setSelectedMessageId(message.id), 520); }} onTouchEnd={() => { if (longPressTimer.current) window.clearTimeout(longPressTimer.current); }} onTouchMove={() => { if (longPressTimer.current) window.clearTimeout(longPressTimer.current); }}><p>{message.text}</p><div className="message-meta"><time>{messageTime(message.createdAt)}</time>{own && <CheckCheck size={14} className="message-check" />}</div>{selectedMessageId === message.id && <div className="message-actions"><button type="button" onClick={() => handleMessageReaction(message.id, '❤️')}>❤️</button><button type="button" onClick={() => handleMessageReaction(message.id, '😂')}>😂</button><button type="button" onClick={() => handleMessageReaction(message.id, '👍')}>👍</button><button type="button" onClick={() => handleMessageReaction(message.id, '🔥')}>🔥</button>{own && <button type="button" className="message-delete-action" onClick={() => handleDeleteMessage(message)}><Trash2 size={14} /> Delete</button>}<button type="button" onClick={() => setSelectedMessageId(null)} aria-label="Close actions">×</button></div>}</div>
                   </div>
                 </Fragment>;
               })}
@@ -352,6 +388,7 @@ function App() {
         </> : <div className="no-active-chat"><div className="empty-illustration"><div className="empty-orbit orbit-one" /><div className="empty-orbit orbit-two" /><div className="empty-chat-icon"><MessageCircle size={34} /><span><Sparkles size={13} fill="currentColor" /></span></div><div className="float-bubble bubble-a"><span /></div><div className="float-bubble bubble-b"><span /><span /><span /></div></div><p className="eyebrow">A LITTLE SPACE FOR YOUR PEOPLE</p><h2>Good conversations<br />start with hello.</h2><p className="no-chat-copy">Pick a conversation on the left or make a new one. Your people are just a message away.</p><button className="primary-button" type="button" onClick={() => setShowNewChat(true)}><Plus size={17} /> Start a new chat</button><div className="quiet-trust"><ShieldCheck size={14} /> {demoMode ? 'Connect Firebase for real accounts and live chats' : 'Messages update in real time'}</div></div>}
       </section>
 
+      {showPeerProfile && activeThread && <section className="peer-profile-page" role="dialog" aria-modal="true"><header className="peer-profile-header"><button type="button" onClick={() => setShowPeerProfile(false)} aria-label="Back"><ArrowLeft size={20} /></button><strong>Contact info</strong></header><div className="peer-profile-hero"><Avatar profile={activeThread.peer} size="xl" online={activeThread.peer.online} /><h1>{activeThread.peer.name}</h1><span>{activeThread.peer.online ? 'Around right now' : 'On Lanchat'}</span></div><div className="peer-profile-details"><div><small>ABOUT</small><p>{activeThread.peer.about || 'Hey there! I am using Lanchat.'}</p></div><div><small>PHONE NUMBER</small><p>{activeThread.peer.phoneNumber || 'Not shared'}</p></div><button type="button" onClick={handleBlockUser}><Ban size={17} /> Block user</button><button type="button" onClick={handleReportUser}><Flag size={17} /> Report user</button></div></section>}
       <section className={`status-page ${mobileTab === 'status' ? 'status-page-open' : ''}`} aria-label="Status">
         <header className="status-page-header">
           <div><p className="eyebrow">MOMENTS THAT LAST 24 HOURS</p><h1>Status<span className="title-period">.</span></h1></div>
