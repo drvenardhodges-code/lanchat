@@ -766,3 +766,5 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 .story-react-button.story-reacted { color:#f9a8d4; border-color:rgba(249,168,212,.4); background:rgba(236,72,153,.13); }
 :root[data-theme="light"] .story-engagement { color:#5b4676; border-color:#eee7f8; background:#fff; }
 :root[data-theme="light"] .story-react-button { color:#6d28d9; border-color:#e6d8fa; background:#f6f0ff; }
+
+.new-message-indicator { display:inline-block; flex:0 0 8px; width:8px; height:8px; margin-left:auto; border-radius:50%; background:#a78bfa; box-shadow:0 0 10px rgba(167,139,250,.65); }
