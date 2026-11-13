@@ -8,7 +8,7 @@ A responsive, light-blue messaging app inspired by familiar chat apps. Built wit
 2. Start the app: `pnpm dev`
 3. For Firebase phone authentication and live chats, follow [Firebase setup](./FIREBASE_SETUP.md).
 
-Without Firebase settings, Lanchat opens a clearly marked interactive sample preview. Do not treat sample messages or profile edits as live, shared account data. Add the six `VITE_FIREBASE_*` values in a local `.env.local` file to enable phone-number registration/sign-in, real-time conversations, phone lookup, profile editing, and picture uploads.
+Lanchat is wired to the Firebase web app `lanchat-ccf2a`; the Firebase browser config and Analytics measurement ID supplied by the project owner are set as defaults in the client initializer. Enable Phone Auth, authorize your Preview/published domains, create Firestore and Storage, and deploy the included rules/index before using real accounts and messages. The sample preview remains available if Firebase config is removed. Optional `VITE_FIREBASE_*` values in `.env.local` can override the defaults.
 
 ## Main features
 
@@ -18,4 +18,4 @@ Without Firebase settings, Lanchat opens a clearly marked interactive sample pre
 - Editable name, about text, and Firebase Storage profile picture.
 - Responsive desktop/mobile conversation interface and local sample preview.
 
-The Firebase browser configuration is public app configuration, not a server secret. Deploy the included Firestore and Storage security rules before using real data. Phone-index writes are bound to the verified Firebase phone claim, and each message plus its conversation preview is committed atomically. The rules, schema, phone-index privacy limits, and deployment steps are documented in [FIREBASE_SETUP.md](./FIREBASE_SETUP.md).
+The Firebase browser configuration is public app configuration, not a server secret. Never add a Firebase service-account key to the client. Phone-index writes are bound to the verified Firebase phone claim, and each message plus its conversation preview is committed atomically. The rules, schema, phone-index privacy limits, and deployment steps are documented in [FIREBASE_SETUP.md](./FIREBASE_SETUP.md).

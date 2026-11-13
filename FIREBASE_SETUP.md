@@ -1,11 +1,11 @@
 # Connect Lanchat to Firebase
 
-Lanchat uses the Firebase JavaScript SDK directly in the browser: Firebase Authentication for phone verification, Cloud Firestore for profiles/chats/messages, and Firebase Storage for profile pictures. The app currently runs a labeled sample-data preview until all six Firebase web app settings are present. Firebase client configuration values are browser-visible by design; keep service-account keys and other server credentials out of this app.
+Lanchat is connected in its client code to the Firebase web app settings supplied for project `lanchat-ccf2a`. It uses Firebase Authentication for phone verification, Cloud Firestore for profiles/chats/messages, Firebase Storage for profile pictures, and Firebase Analytics when the browser supports it. The Firebase web configuration is public browser configuration; never add service-account keys or other server credentials to this app.
 
 ## 1. Create a Firebase project and web app
 
-1. In the [Firebase Console](https://console.firebase.google.com/), create or choose a project and register a Web app.
-2. In **Project settings → General → Your apps**, copy the web app settings. From the app directory, copy `.env.example` to `.env.local` and fill in the six values below:
+1. In the [Firebase Console](https://console.firebase.google.com/), open project `lanchat-ccf2a` and confirm its registered Web app matches the values in `src/lib/firebase.ts`.
+2. Those settings are already wired as Lanchat’s default. To point the site at a different Firebase web app, copy `.env.example` to `.env.local` and fill in its public browser settings; Vite environment variables override the defaults:
 
 ```dotenv
 VITE_FIREBASE_API_KEY=your-web-api-key
@@ -14,9 +14,10 @@ VITE_FIREBASE_PROJECT_ID=your-project-id
 VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
+VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
-Some newer Firebase projects use a `firebasestorage.app` storage bucket domain; use the exact `storageBucket` value shown in your Firebase project configuration. Restart the Vite dev server after changing `.env.local`. For a published frontend, provide the same `VITE_` values as public build-time variables in the hosting configuration.
+`VITE_FIREBASE_MEASUREMENT_ID` is optional. Some newer Firebase projects use a `firebasestorage.app` storage bucket domain; use the exact `storageBucket` value shown in your Firebase project configuration. Restart the Vite dev server after changing `.env.local`. For a published frontend, browser-safe Firebase settings are bundled into the client build; never expose service-account credentials.
 
 ## 2. Enable phone sign-in
 
@@ -52,7 +53,7 @@ pnpm install
 pnpm dev
 ```
 
-With no Firebase settings, the interface explicitly labels itself as a sample preview. With the six settings present, it opens the phone-number sign-in flow. New accounts create their private user record, profile, and phone lookup index after successful Firebase phone verification. Users can then find an existing account using its exact E.164 number (for example `+14155550108`), open a real-time one-to-one conversation, and edit their name, about text, or profile photo.
+With the supplied Firebase defaults, Lanchat opens the phone-number sign-in flow. It uses a sample preview only when a complete Firebase configuration is absent. New accounts create their private user record, profile, and phone lookup index after successful Firebase phone verification. Users can then find an existing account using its exact E.164 number (for example `+14155550108`), open a real-time one-to-one conversation, and edit their name, about text, or profile photo. Phone Auth, Firestore, Storage, authorized domains, and the included rules/index must also be enabled/deployed in Firebase Console for those live features to work.
 
 ## Data layout
 
