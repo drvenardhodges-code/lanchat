@@ -193,3 +193,31 @@ export async function uploadAvatar(uid: string, file: File) {
   }
   return result.secure_url;
 }
+
+
+export async function uploadStoryMedia(uid: string, file: File) {
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME?.trim();
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET?.trim();
+  if (!cloudName || !uploadPreset) {
+    throw new Error('Story uploads are not configured. Check the Cloudinary environment variables in Vercel.');
+  }
+  if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+    throw new Error('Choose an image or video for your story.');
+  }
+  if (file.size > 15 * 1024 * 1024) throw new Error('Stories must be 15 MB or smaller.');
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', uploadPreset);
+  formData.append('folder', `lanchat/stories/${uid}`);
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/auto/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+  const result = await response.json() as { secure_url?: string; error?: { message?: string } };
+  if (!response.ok || !result.secure_url) {
+    throw new Error(result.error?.message || 'Story media upload failed. Check that your unsigned Cloudinary preset allows image and video uploads.');
+  }
+  return result.secure_url;
+}
