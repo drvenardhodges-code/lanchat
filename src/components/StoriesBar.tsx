@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { addDoc, collection, deleteDoc, doc, limit, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore';
-import { ImagePlus, LoaderCircle, Plus, Send, Trash2, Video, X, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
+import { addDoc, collection, deleteDoc, doc, getDocs, limit, onSnapshot, orderBy, query, setDoc, Timestamp, where } from 'firebase/firestore';
+import { Eye, Heart, ImagePlus, LoaderCircle, Plus, Send, Trash2, Video, X, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { db } from '../lib/firebase';
 import { uploadStoryMedia } from '../lib/chat';
@@ -36,6 +36,9 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const [previewUrl, setPreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [viewCount, setViewCount] = useState(0);
+  const [reactionCount, setReactionCount] = useState(0);
+  const [hasReacted, setHasReacted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -98,6 +101,49 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       return current;
     });
   }
+  useEffect(() => {
+    if (!viewer || !activeStory || !db || !user) {
+      setViewCount(0); setReactionCount(0); setHasReacted(false);
+      return;
+    }
+    let cancelled = false;
+    const loadEngagement = async () => {
+      try {
+        if (activeStory.userId !== user.uid) {
+          await setDoc(doc(db, 'stories', activeStory.id, 'views', user.uid), {
+            userId: user.uid, userName: profile.name, viewedAt: Timestamp.now(),
+          }, { merge: true });
+        }
+        const [views, reactions, mine] = await Promise.all([
+          getDocs(collection(db!, 'stories', activeStory.id, 'views')),
+          getDocs(collection(db!, 'stories', activeStory.id, 'reactions')),
+          getDocs(query(collection(db!, 'stories', activeStory.id, 'reactions'), where('userId', '==', user.uid))),
+        ]);
+        if (!cancelled) {
+          setViewCount(views.size); setReactionCount(reactions.size); setHasReacted(!mine.empty);
+        }
+      } catch {
+        if (!cancelled) onNotice('Could not load story views and reactions.');
+      }
+    };
+    void loadEngagement();
+    return () => { cancelled = true; };
+  }, [viewer?.groupIndex, viewer?.storyIndex, activeStory?.id, user?.uid]);
+
+  async function toggleReaction() {
+    if (!db || !user || !activeStory) return;
+    const reactionRef = doc(db, 'stories', activeStory.id, 'reactions', user.uid);
+    try {
+      if (hasReacted) {
+        await deleteDoc(reactionRef);
+        setHasReacted(false); setReactionCount((count) => Math.max(0, count - 1));
+      } else {
+        await setDoc(reactionRef, { userId: user.uid, userName: profile.name, emoji: '❤️', createdAt: Timestamp.now() });
+        setHasReacted(true); setReactionCount((count) => count + 1);
+      }
+    } catch { onNotice('Could not send your reaction. Check your Firestore rules.'); }
+  }
+
   useEffect(() => {
     if (!viewer || !activeStory || activeStory.mediaType === 'video') return;
     const timer = window.setTimeout(nextStory, 6500);
@@ -190,6 +236,11 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
             <button type="button" className="story-nav story-nav-prev" onClick={previousStory} aria-label="Previous story"><ChevronLeft size={24} /></button>
             <button type="button" className="story-nav story-nav-next" onClick={nextStory} aria-label="Next story"><ChevronRight size={24} /></button>
           </div>
+          <footer className="story-engagement">
+            <span className="story-engagement-count"><Heart size={16} /> {reactionCount}</span>
+            {activeStory.userId === user?.uid && <span className="story-engagement-count"><Eye size={16} /> {viewCount} views</span>}
+            {activeStory.userId !== user?.uid && <button type="button" className={hasReacted ? 'story-react-button story-reacted' : 'story-react-button'} onClick={() => void toggleReaction()} aria-label={hasReacted ? 'Remove reaction' : 'React to story'}><Heart size={18} fill={hasReacted ? 'currentColor' : 'none'} /> {hasReacted ? 'Liked' : 'React'}</button>}
+          </footer>
         </div>
       </div>}
     </section>
