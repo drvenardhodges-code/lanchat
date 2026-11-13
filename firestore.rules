@@ -70,6 +70,33 @@ service cloud.firestore {
           : request.resource.data.mediaURL.size() > 0);
       allow update: if false;
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+
+      // Story views: each user can record their own view; only the owner lists viewers.
+      match /views/{viewerId} {
+        allow create, update: if signedIn()
+          && request.auth.uid == viewerId
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.keys().hasOnly(['userId', 'userName', 'viewedAt'])
+          && request.resource.data.viewedAt is timestamp;
+        allow get: if signedIn()
+          && (request.auth.uid == viewerId
+            || get(/databases/$(database)/documents/stories/$(storyId)).data.userId == request.auth.uid);
+        allow list: if signedIn()
+          && get(/databases/$(database)/documents/stories/$(storyId)).data.userId == request.auth.uid;
+        allow delete: if signedIn() && request.auth.uid == viewerId;
+      }
+
+      // One reaction per signed-in user per story.
+      match /reactions/{reactorId} {
+        allow get, list: if signedIn();
+        allow create, update: if signedIn()
+          && request.auth.uid == reactorId
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.emoji == '❤️'
+          && request.resource.data.keys().hasOnly(['userId', 'userName', 'emoji', 'createdAt'])
+          && request.resource.data.createdAt is timestamp;
+        allow delete: if signedIn() && request.auth.uid == reactorId;
+      }
     }
 
     match /chats/{chatId} {
