@@ -30,6 +30,11 @@ service cloud.firestore {
         && (!('phoneNumber' in request.resource.data)
           || (request.resource.data.phoneNumber is string && request.resource.data.phoneNumber.size() <= 32));
       allow delete: if signedIn() && request.auth.uid == uid;
+      match /blocked/{blockedUid} {
+        allow get, list: if signedIn() && request.auth.uid == uid;
+        allow create: if signedIn() && request.auth.uid == uid && request.resource.data.keys().hasOnly(['userId', 'createdAt']) && request.resource.data.userId == blockedUid && request.resource.data.createdAt is timestamp;
+        allow delete: if signedIn() && request.auth.uid == uid;
+      }
     }
 
     // Legacy phone-OTP accounts can only write the index for their verified Firebase Auth phone claim.
@@ -125,8 +130,18 @@ service cloud.firestore {
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 4000;
-        allow update, delete: if false;
+        allow update: if isChatMember(chatId) && resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']);
+        allow delete: if isChatMember(chatId) && resource.data.senderId == request.auth.uid;
+        match /reactions/{reactorId} {
+          allow get, list: if isChatMember(chatId);
+          allow create, update: if isChatMember(chatId) && request.auth.uid == reactorId && request.resource.data.keys().hasOnly(['userId', 'emoji', 'createdAt']) && request.resource.data.userId == request.auth.uid && request.resource.data.emoji in ['❤️', '😂', '👍', '🔥'] && request.resource.data.createdAt is timestamp;
+          allow delete: if isChatMember(chatId) && request.auth.uid == reactorId;
+        }
       }
+    }
+    match /reports/{reportId} {
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['reporterId', 'reportedUserId', 'reason', 'createdAt', 'status']) && request.resource.data.reporterId == request.auth.uid && request.resource.data.reportedUserId is string && request.resource.data.reportedUserId != request.auth.uid && request.resource.data.reason is string && request.resource.data.reason.size() > 0 && request.resource.data.reason.size() <= 500 && request.resource.data.createdAt is timestamp && request.resource.data.status == 'new';
+      allow read, update, delete: if false;
     }
   }
 }
