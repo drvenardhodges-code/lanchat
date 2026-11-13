@@ -287,7 +287,7 @@ function App() {
       <section className={`inbox-panel ${mobileList ? 'inbox-panel-mobile-open' : ''}`}>
         <header className="inbox-header">
           <div className="wordmark-line">
-            <div><p className="eyebrow">YOUR LITTLE CORNER</p><h1>Messages<span className="title-period">.</span></h1></div>
+            <div><p className="eyebrow">YOUR LITTLE CORNER</p><h1>LANChat<span className="title-period">.</span></h1></div>
             <div className="inbox-header-actions"><ThemeToggle /><button className="new-chat-button" type="button" onClick={() => setShowNewChat(true)} aria-label="Start a new chat"><Plus size={19} /><span>New chat</span></button></div>
           </div>
           <label className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a conversation" aria-label="Search conversations" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} /></button>}<kbd>⌘ K</kbd></label>
