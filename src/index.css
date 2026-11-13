@@ -685,3 +685,76 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
   :root[data-theme="light"] .mobile-nav-item { color: #8b7b9f; }
   :root[data-theme="light"] .mobile-nav-item.active { color: #7c3aed; }
 }
+
+
+/* Dedicated mobile Status page and persistent bottom navigation */
+.status-page { display: none; }
+@media (max-width: 640px) {
+  .status-page {
+    position: absolute;
+    z-index: 8;
+    inset: 0 0 70px;
+    display: none;
+    overflow-y: auto;
+    padding: 22px 0 18px;
+    background: var(--surface, #100c1b);
+  }
+  .status-page.status-page-open { display: block; }
+  .status-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px 17px;
+  }
+  .status-page-header h1 { margin: 3px 0 0; font-size: 25px; }
+  .status-page .stories-section {
+    padding: 15px 18px 18px;
+    border-top: 1px solid var(--line);
+  }
+  .status-page .stories-heading { margin-bottom: 14px; }
+  .mobile-bottom-nav {
+    position: absolute;
+    z-index: 50;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+    min-height: calc(66px + env(safe-area-inset-bottom));
+    padding: 7px 10px calc(7px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(167,139,250,.16);
+    background: rgba(17,12,29,.96);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+  }
+  .mobile-nav-item {
+    display: flex;
+    min-width: 0;
+    height: 52px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 0;
+    border-radius: 14px;
+    color: #9e91b4;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-nav-item span { font-size: 10px; font-weight: 700; letter-spacing: .01em; }
+  .mobile-nav-item.active { color: #c4b5fd; }
+  .mobile-nav-item.active svg { filter: drop-shadow(0 0 7px rgba(167,139,250,.55)); }
+  .inbox-panel { padding-bottom: 76px; }
+  .chat-panel { padding-bottom: 76px; }
+  .status-page { bottom: calc(66px + env(safe-area-inset-bottom)); }
+  :root[data-theme="light"] .mobile-bottom-nav {
+    border-top-color: #eee7f8;
+    background: rgba(255,255,255,.97);
+  }
+  :root[data-theme="light"] .mobile-nav-item { color: #8b7b9f; }
+  :root[data-theme="light"] .mobile-nav-item.active { color: #7c3aed; }
+  :root[data-theme="light"] .status-page { background: #fbfaff; }
+}
