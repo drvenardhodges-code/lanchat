@@ -298,7 +298,7 @@ function App() {
             const selected = thread.id === activeId;
             return <button className={`thread-card ${selected ? 'selected' : ''}`} key={thread.id} type="button" onClick={() => openThread(thread.id)} style={{ animationDelay: `${index * 35}ms` }}>
               <div className="thread-avatar-wrap"><Avatar profile={thread.peer} size="lg" online={thread.peer.online} /></div>
-              <div className="thread-copy"><div className="thread-title-row"><strong>{thread.peer.name}</strong><time>{timeAgo(thread.updatedAt)}</time></div><div className="thread-preview-row"><span className="thread-preview">{thread.lastMessage?.text ?? 'Say hello and start something lovely.'}</span>{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') && <CheckCheck className="delivered-icon" size={15} />}</div></div>
+              <div className="thread-copy"><div className="thread-title-row"><strong>{thread.peer.name}</strong><time>{timeAgo(thread.updatedAt)}</time></div><div className="thread-preview-row"><span className="thread-preview">{thread.lastMessage?.text ?? 'New message'}</span>{!thread.lastMessage && <span className="new-message-indicator" aria-label="New conversation" />}{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') && <CheckCheck className="delivered-icon" size={15} />}</div></div>
             </button>;
           }) : <div className="empty-search"><div className="empty-search-icon"><Search size={18} /></div><strong>No conversations found</strong><span>Try a different name or message.</span></div>}
         </div>
