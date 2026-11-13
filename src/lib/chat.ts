@@ -144,9 +144,12 @@ export async function getChatByPhone(currentUid: string, phone: string): Promise
   const chatId = participants.join('__');
   const chatRef = doc(firestore, 'chats', chatId);
   const chatSnapshot = await getDoc(chatRef);
-  if (!chatSnapshot.exists()) {
-    await setDoc(chatRef, { participants, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), lastMessage: null });
-  }
+  // Keep a complete, queryable chat record so it remains in the inbox after reload.
+  await setDoc(chatRef, {
+    participants,
+    updatedAt: serverTimestamp(),
+    ...(!chatSnapshot.exists() ? { createdAt: serverTimestamp(), lastMessage: null } : {}),
+  }, { merge: true });
   return {
     id: chatId,
     peer: profileFrom(peerId, peerData, normalized),
