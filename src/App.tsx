@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent, type To
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import {
   ArrowLeft, ArrowUpRight, Check, CheckCheck, CircleHelp, Info,
-  MessageCircle, Paperclip, Phone, Plus, Search, Send, Settings2,
+  MessageCircle, Paperclip, Phone, Plus, Search, Send, Settings2, Crown,
   ShieldCheck, Smile, Sparkles, X, CircleDot, UserRound, Ban, Flag, Trash2, MoreVertical,
 } from 'lucide-react';
 import { Avatar } from './components/Avatar';
@@ -62,6 +62,7 @@ function App() {
   const [messages, setMessages] = useState<ChatMessage[]>(demoMessages[demoThreads[0]?.id ?? ''] ?? []);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [query, setQuery] = useState('');
+  const [showInboxSearch, setShowInboxSearch] = useState(false);
   const [messageSearch, setMessageSearch] = useState('');
   const [compose, setCompose] = useState('');
   const [showMessageSearch, setShowMessageSearch] = useState(false);
@@ -397,23 +398,28 @@ function App() {
       </aside>
 
       <section className={`inbox-panel ${mobileList ? 'inbox-panel-mobile-open' : ''}`}>
-        <header className="inbox-header">
-          <div className="wordmark-line">
-            <div className="wordmark-brand">
-              <span className="wordmark-emblem"><MessageCircle size={21} strokeWidth={2.4} /><i><Sparkles size={8} fill="currentColor" /></i></span>
-              <div className="wordmark-copy"><p className="eyebrow">YOUR LITTLE CORNER</p><h1>LANChat<span className="title-period">.</span></h1><span className="wordmark-subtitle">Stay close. Say more.</span></div>
+        <header className="inbox-header reference-inbox-header">
+          <div className="reference-brand-row">
+            <div className="reference-brand"><Crown size={30} strokeWidth={2.4} fill="currentColor" /><h1>LANChat</h1></div>
+            <div className="reference-header-actions">
+              <button className="reference-icon-button" type="button" aria-label="Search conversations" onClick={() => setShowInboxSearch((value) => !value)}><Search size={19} /></button>
+              <button className="reference-add-button" type="button" onClick={() => setShowNewChat(true)} aria-label="New chat"><Plus size={23} /></button>
             </div>
-            <div className="inbox-header-actions"><ThemeToggle /><button className="new-chat-button" type="button" onClick={() => setShowNewChat(true)} aria-label="Start a new chat"><Plus size={19} /><span>New chat</span></button></div>
           </div>
-          <label className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a conversation" aria-label="Search conversations" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} /></button>}<kbd>⌘ K</kbd></label>
-          <div className="inbox-section-label"><span>RECENT CONVERSATIONS</span><button type="button" className="icon-quiet" aria-label="Conversation settings" onClick={() => showNotice('You’re all caught up.') }><Settings2 size={17} /></button></div>
+          {showInboxSearch && <label className="search-box reference-search-box"><Search size={16} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a conversation" aria-label="Search conversations" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} /></button>}</label>}
+          <button className="reference-my-status" type="button" onClick={() => { setMobileTab('status'); setMobileList(true); }}>
+            <span className="reference-status-avatar"><Avatar profile={profile} size="md" /><i><Plus size={11} /></i></span>
+            <span className="reference-status-copy"><strong>My Status</strong><small>Tap to add status</small></span>
+            <span className="reference-status-camera"><MessageCircle size={19} /></span>
+          </button>
+          <div className="reference-inbox-tabs"><button className="active" type="button" onClick={() => { setMobileTab('chats'); setMobileList(true); }}>Chats <b>{threads.length}</b></button><button type="button" onClick={() => { setMobileTab('status'); setMobileList(true); }}>Status</button><button type="button" onClick={() => setShowProfile(true)}>Profile</button></div>
         </header>
-        <div className="thread-list">
+        <div className="thread-list reference-thread-list">
           {filteredThreads.length > 0 ? filteredThreads.map((thread, index) => {
             const selected = thread.id === activeId;
-            return <button className={`thread-card ${selected ? 'selected' : ''}`} key={thread.id} type="button" onClick={() => openThread(thread.id)} style={{ animationDelay: `${index * 35}ms` }}>
-              <div className="thread-avatar-wrap"><Avatar profile={thread.peer} size="lg" online={thread.peer.online} /></div>
-              <div className="thread-copy"><div className="thread-title-row"><strong>{thread.peer.name}</strong><time>{timeAgo(thread.updatedAt)}</time></div><div className="thread-preview-row"><span className="thread-preview">{thread.lastMessage?.text ?? 'New message'}</span>{!thread.lastMessage && <span className="new-message-indicator" aria-label="New conversation" />}{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') && <CheckCheck className="delivered-icon" size={15} />}</div></div>
+            return <button className={`thread-card reference-thread-card ${selected ? 'selected' : ''}`} key={thread.id} type="button" onClick={() => openThread(thread.id)} style={{ animationDelay: `${index * 35}ms` }}>
+              <div className="thread-avatar-wrap reference-thread-avatar"><Avatar profile={thread.peer} size="lg" online={thread.peer.online} /></div>
+              <div className="thread-copy reference-thread-copy"><div className="thread-title-row"><strong>{thread.peer.name}</strong><time>{messageTime(thread.updatedAt)}</time></div><div className="thread-preview-row"><span className="thread-preview">{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') ? 'You: ' : ''}{thread.lastMessage?.text ?? 'Tap to start chatting'}</span>{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') && <CheckCheck className="delivered-icon" size={14} />}</div></div>
             </button>;
           }) : <div className="empty-search"><div className="empty-search-icon"><Search size={18} /></div><strong>No conversations found</strong><span>Try a different name or message.</span></div>}
         </div>
