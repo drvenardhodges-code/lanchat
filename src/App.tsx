@@ -202,7 +202,7 @@ function App() {
     if (demoMode) {
       const cleaned = phone.replace(/[\s().-]/g, '');
       const contact = demoUsers.find((person) => person.phoneNumber.replace(/[\s().-]/g, '') === cleaned);
-      if (!contact) throw new Error('No sample account matches that number. Connect Firebase to discover real Lanchat users.');
+      if (!contact) throw new Error('No sample account matches that number. No account matches that number. Check the number and try again.');
       const existing = threads.find((thread) => thread.peer.uid === contact.uid);
       if (existing) {
         setActiveId(existing.id);
@@ -315,7 +315,7 @@ function App() {
         <button className="rail-button active" aria-label="Chats" title="Chats" type="button"><MessageCircle size={21} /><span className="rail-dot" /></button>
         <button className="rail-button" aria-label="New chat" title="New chat" type="button" onClick={() => setShowNewChat(true)}><Plus size={21} /></button>
         <div className="rail-spacer" />
-        <button className="rail-button" aria-label="Help" title="Help" type="button" onClick={() => showNotice('Your chats stay in sync with Firebase when connected.')}><CircleHelp size={20} /></button>
+        <button className="rail-button" aria-label="Help" title="Help" type="button" onClick={() => showNotice('Your conversations are right here.')}><CircleHelp size={20} /></button>
         {firebaseUser && <button className="rail-button" aria-label="Sign out" title="Sign out" type="button" onClick={handleSignOut}><ArrowUpRight size={20} /></button>}
         <button className="rail-avatar" type="button" onClick={() => setShowProfile(true)} aria-label="Open your profile"><Avatar profile={profile} size="sm" /></button>
       </aside>
@@ -339,7 +339,7 @@ function App() {
           }) : <div className="empty-search"><div className="empty-search-icon"><Search size={18} /></div><strong>No conversations found</strong><span>Try a different name or message.</span></div>}
         </div>
         <footer className="inbox-footer">
-          {demoMode && <button className="demo-connect-card" type="button" onClick={() => showNotice('Add your Firebase web app settings to .env — see FIREBASE_SETUP.md.') }><span className="demo-connect-icon"><Sparkles size={15} /></span><span><strong>Make it yours</strong><small>Connect your Firebase project</small></span><ArrowUpRight size={16} /></button>}
+          
         </footer>
       </section>
 
@@ -357,11 +357,11 @@ function App() {
               <div className="chat-menu-wrap"><button type="button" className="header-icon more-button" onClick={() => setShowChatMenu((value) => !value)} aria-label="More chat options"><MoreVertical size={21} /></button>{showChatMenu && <div className="chat-options-menu"><button type="button" onClick={() => { setShowChatMenu(false); setShowPeerProfile(true); }}><UserRound size={16} /> View profile</button><button type="button" onClick={handleBlockUser}><Ban size={16} /> Block user</button><button type="button" onClick={handleReportUser}><Flag size={16} /> Report user</button></div>}</div>
             </div>
           </header>
-          {demoMode && <div className="preview-ribbon"><span><Sparkles size={13} /> SAMPLE PREVIEW</span><span>Connect Firebase to send messages between real accounts.</span><button type="button" onClick={() => showNotice('Add Firebase configuration and read FIREBASE_SETUP.md to connect the app.')}>Setup <ArrowUpRight size={12} /></button></div>}
+          
           <div className="chat-body-wrap">
             <div className="chat-wallpaper" />
             <div className="message-scroll-area">
-              <div className="encryption-note"><span><ShieldCheck size={14} /> {demoMode ? 'This is a local sample preview.' : 'Your conversations are stored in your Firebase project.'}</span></div>
+              <div className="encryption-note"><span><ShieldCheck size={14} /> {demoMode ? 'This is a local sample preview.' : 'Your conversations appear here.'}</span></div>
               {visibleMessages.map((message, index) => {
                 const own = message.senderId === (firebaseUser?.uid ?? 'me');
                 const newDay = index === 0 || visibleMessages[index - 1].createdAt.toDateString() !== message.createdAt.toDateString();
@@ -376,7 +376,7 @@ function App() {
               {visibleMessages.length === 0 && messageSearch && <div className="no-message-results">No messages match “{messageSearch}”.</div>}
               <div ref={messageEnd} />
             </div>
-            {showDetails && <aside className="details-card"><button type="button" className="details-close" onClick={() => setShowDetails(false)} aria-label="Close chat details"><X size={16} /></button><Avatar profile={activeThread.peer} size="xl" online={activeThread.peer.online} /><h3>{activeThread.peer.name}</h3>{activeThread.peer.phoneNumber && <span className="details-phone">{activeThread.peer.phoneNumber}</span>}<p>{activeThread.peer.about || 'A Lanchat friend'}</p><div className="details-note"><ShieldCheck size={15} />Messages sync through Firebase.</div></aside>}
+            {showDetails && <aside className="details-card"><button type="button" className="details-close" onClick={() => setShowDetails(false)} aria-label="Close chat details"><X size={16} /></button><Avatar profile={activeThread.peer} size="xl" online={activeThread.peer.online} /><h3>{activeThread.peer.name}</h3>{activeThread.peer.phoneNumber && <span className="details-phone">{activeThread.peer.phoneNumber}</span>}<p>{activeThread.peer.about || 'A Lanchat friend'}</p><div className="details-note"><ShieldCheck size={15} />Your conversation details.</div></aside>}
           </div>
           <form className="composer" onSubmit={handleSend}>
             <button type="button" className="composer-tool" aria-label="Emoji picker" onClick={() => setCompose((value) => `${value}${value ? ' ' : ''}🙂`)}><Smile size={21} /></button>
@@ -385,7 +385,7 @@ function App() {
             <span className="composer-hint">↵ to send</span>
             <button type="submit" className={`send-button ${compose.trim() ? 'send-button-ready' : ''}`} disabled={!compose.trim() || busy} aria-label="Send message"><Send size={17} fill="currentColor" /></button>
           </form>
-        </> : <div className="no-active-chat"><div className="empty-illustration"><div className="empty-orbit orbit-one" /><div className="empty-orbit orbit-two" /><div className="empty-chat-icon"><MessageCircle size={34} /><span><Sparkles size={13} fill="currentColor" /></span></div><div className="float-bubble bubble-a"><span /></div><div className="float-bubble bubble-b"><span /><span /><span /></div></div><p className="eyebrow">A LITTLE SPACE FOR YOUR PEOPLE</p><h2>Good conversations<br />start with hello.</h2><p className="no-chat-copy">Pick a conversation on the left or make a new one. Your people are just a message away.</p><button className="primary-button" type="button" onClick={() => setShowNewChat(true)}><Plus size={17} /> Start a new chat</button><div className="quiet-trust"><ShieldCheck size={14} /> {demoMode ? 'Connect Firebase for real accounts and live chats' : 'Messages update in real time'}</div></div>}
+        </> : <div className="no-active-chat"><div className="empty-illustration"><div className="empty-orbit orbit-one" /><div className="empty-orbit orbit-two" /><div className="empty-chat-icon"><MessageCircle size={34} /><span><Sparkles size={13} fill="currentColor" /></span></div><div className="float-bubble bubble-a"><span /></div><div className="float-bubble bubble-b"><span /><span /><span /></div></div><p className="eyebrow">A LITTLE SPACE FOR YOUR PEOPLE</p><h2>Good conversations<br />start with hello.</h2><p className="no-chat-copy">Pick a conversation on the left or make a new one. Your people are just a message away.</p><button className="primary-button" type="button" onClick={() => setShowNewChat(true)}><Plus size={17} /> Start a new chat</button><div className="quiet-trust"><ShieldCheck size={14} /> {demoMode ? 'Sign in to connect with people' : 'Messages update in real time'}</div></div>}
       </section>
 
       {showPeerProfile && activeThread && <section className="peer-profile-page" role="dialog" aria-modal="true"><header className="peer-profile-header"><button type="button" onClick={() => setShowPeerProfile(false)} aria-label="Back"><ArrowLeft size={20} /></button><strong>Contact info</strong></header><div className="peer-profile-hero"><Avatar profile={activeThread.peer} size="xl" online={activeThread.peer.online} /><h1>{activeThread.peer.name}</h1><span>{activeThread.peer.online ? 'Around right now' : 'On Lanchat'}</span></div><div className="peer-profile-details"><div><small>ABOUT</small><p>{activeThread.peer.about || 'Hey there! I am using Lanchat.'}</p></div><div><small>PHONE NUMBER</small><p>{activeThread.peer.phoneNumber || 'Not shared'}</p></div><button type="button" onClick={handleBlockUser}><Ban size={17} /> Block user</button><button type="button" onClick={handleReportUser}><Flag size={17} /> Report user</button></div></section>}
