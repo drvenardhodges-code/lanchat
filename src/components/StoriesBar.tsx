@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type TouchEvent } from 'react';
 import { addDoc, collection, deleteDoc, doc, limit, onSnapshot, orderBy, query, setDoc, Timestamp, where } from 'firebase/firestore';
 import { Eye, Heart, ImagePlus, LoaderCircle, Plus, Send, Trash2, Video, X, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 import { Avatar } from './Avatar';
@@ -42,7 +42,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const fileRef = useRef<HTMLInputElement>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  function handleStoryTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+  function handleStoryTouchStart(event: TouchEvent<HTMLDivElement>) {
     const touch = event.changedTouches[0];
     if (!touch) return;
     touchStartRef.current = { x: touch.clientX, y: touch.clientY };
