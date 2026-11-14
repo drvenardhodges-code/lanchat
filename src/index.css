@@ -835,3 +835,39 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 .story-engagement-people section { display:flex; flex-direction:column; gap:6px; min-width:0; }
 .story-engagement-people section > strong { color:var(--text); font-size:10px; }
 .story-engagement-people section > span,.story-engagement-people section > small { overflow:hidden; color:var(--muted); font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+
+
+/* Full-screen status viewer: take over the whole screen and hide app navigation. */
+.story-viewer-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: stretch;
+  padding: 0;
+  background: #08060e;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.story-viewer {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  min-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.app-shell:has(.story-viewer-backdrop) .mobile-bottom-nav {
+  display: none !important;
+}
+@media (max-width: 640px) {
+  .story-viewer-backdrop { padding: 0; }
+  .story-viewer {
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100dvh;
+    border-radius: 0;
+  }
+}
