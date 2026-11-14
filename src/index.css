@@ -1246,3 +1246,16 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
   .reference-thread-card { min-height:70px;padding:8px 7px; }
   .reference-thread-avatar .avatar { width:47px!important;height:47px!important; }
 }
+
+
+/* Separate own status from the circular add-status control. */
+.story-add-circle{display:flex;flex:0 0 65px;min-width:65px;flex-direction:column;align-items:center;gap:7px;padding:0;border:0;border-radius:0;color:var(--text,#f5edff);background:transparent;box-shadow:none;cursor:pointer}
+.story-add-avatar{position:relative;display:grid;width:56px;height:56px;place-items:center;padding:3px;border:2px solid rgba(192,132,252,.55);border-radius:50%;background:transparent;box-shadow:0 0 14px rgba(168,85,247,.16)}
+.story-add-avatar>.avatar{width:100%;height:100%;border:0;border-radius:50%}
+.story-add-avatar>i{position:absolute;right:-3px;bottom:-2px;display:grid;width:21px;height:21px;place-items:center;border:2px solid var(--surface,#100c1b);border-radius:50%;color:#fff;background:linear-gradient(135deg,#c084fc,#9333ea);font-style:normal}
+.story-add-label{max-width:72px;overflow:hidden;color:var(--muted,#b7a9c9);font-size:10px;font-weight:650;text-overflow:ellipsis;white-space:nowrap}
+.story-own-person{border:0;background:transparent}
+.story-own-person .story-ring{border-color:#d15bff;box-shadow:0 0 0 2px rgba(89,218,255,.35),0 0 14px rgba(187,67,255,.28)}
+:root[data-theme="light"] .story-add-circle{color:#352047}
+:root[data-theme="light"] .story-add-avatar>i{border-color:#fff}
+@media(max-width:640px){.stories-track>.story-add-circle{display:flex;width:65px;min-width:65px;min-height:0;flex-direction:column;align-items:center;gap:7px;padding:0;border:0;border-radius:0;background:transparent;text-align:center}.stories-track>.story-add-circle .story-add-avatar{width:54px;height:54px}.stories-track>.story-add-circle .story-add-label{width:100%;text-align:center}}
