@@ -254,14 +254,14 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
     <section className="stories-section" aria-label="Stories">
       <div className="stories-heading"><span>STORIES</span><span className="stories-expiry"><Clock3 size={11} /> 24 HOURS</span></div>
       <div className="stories-track">
-        {ownGroup && <button type="button" className="story-person story-own-person" onClick={() => setViewer({ groupIndex: groups.indexOf(ownGroup), storyIndex: 0 })} aria-label="View my status">
-          <span className="story-ring"><Avatar profile={profile} size="md" /></span>
-          <span className="story-person-name">My status</span>
-        </button>}
         <button type="button" className="story-add-circle" onClick={() => { setError(''); setComposerOpen(true); }} aria-label="Add status">
           <span className="story-add-avatar"><Avatar profile={profile} size="md" /><i><Plus size={14} /></i></span>
           <span className="story-add-label">Add status</span>
         </button>
+        {ownGroup && <button type="button" className="story-person story-own-person" onClick={() => setViewer({ groupIndex: groups.indexOf(ownGroup), storyIndex: 0 })} aria-label="View my status">
+          <span className="story-ring"><Avatar profile={profile} size="md" /></span>
+          <span className="story-person-name">My status</span>
+        </button>}
         {groups.filter((group) => group.userId !== user?.uid).map((group) => (
           <button type="button" className="story-person" key={group.userId} onClick={() => setViewer({ groupIndex: groups.indexOf(group), storyIndex: 0 })}>
             <span className="story-ring"><Avatar profile={{ uid: group.userId, name: group.userName, photoURL: group.userPhotoURL, about: '', phoneNumber: '' }} size="md" /></span>
