@@ -381,7 +381,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className="app-shell" onTouchStart={handleAppTouchStart} onTouchEnd={handleAppTouchEnd} onTouchCancel={() => { swipeStart.current = null; }}>
       <aside className="app-rail">
         <button className="brand-mark" type="button" onClick={() => openThread(activeId ?? '')} aria-label="Lanchat home">
           <MessageCircle size={23} strokeWidth={2.5} />
