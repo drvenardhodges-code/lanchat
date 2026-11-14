@@ -40,6 +40,25 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const [likers, setLikers] = useState<{ userId: string; userName: string }[]>([]);
   const [hasReacted, setHasReacted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  function handleStoryTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }
+
+  function handleStoryTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    if (Math.abs(deltaX) < 55 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+    if (deltaX < 0) nextStory();
+    else previousStory();
+  }
 
   useEffect(() => {
     const tick = window.setInterval(() => setNow(Date.now()), 30000);
@@ -248,7 +267,12 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
             {activeStory.userId === user?.uid && <button type="button" className="story-delete" onClick={() => void removeStory(activeStory)} aria-label="Delete story"><Trash2 size={17} /></button>}
             <button type="button" className="story-close" onClick={() => setViewer(null)} aria-label="Close story"><X size={20} /></button>
           </header>
-          <div className={'story-viewer-content ' + (activeStory.mediaType === 'text' ? 'story-text-content' : '')}>
+          <div
+            className={'story-viewer-content ' + (activeStory.mediaType === 'text' ? 'story-text-content' : '')}
+            onTouchStart={handleStoryTouchStart}
+            onTouchEnd={handleStoryTouchEnd}
+            onTouchCancel={() => { touchStartRef.current = null; }}
+          >
             {activeStory.mediaType === 'image' && <img src={activeStory.mediaURL} alt="Story" />}
             {activeStory.mediaType === 'video' && <video src={activeStory.mediaURL} controls autoPlay playsInline onEnded={nextStory} />}
             {activeStory.mediaType === 'text' && <div className="story-text-art"><span>LANCHAT MOMENT</span><p>{activeStory.text}</p></div>}
