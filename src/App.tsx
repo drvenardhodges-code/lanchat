@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent, type TouchEvent } from 'react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import {
   ArrowLeft, ArrowUpRight, Check, CheckCheck, CircleHelp, Info,
@@ -72,7 +72,9 @@ function App() {
   const [showPeerProfile, setShowPeerProfile] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [mobileList, setMobileList] = useState(true);
-  const [mobileTab, setMobileTab] = useState<'chats' | 'status'>('chats');
+  const [mobileTab, setMobileTab] = useState<'chats' | 'status' | 'profile'>('chats');
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const messageEnd = useRef<HTMLDivElement>(null);
@@ -173,14 +175,39 @@ function App() {
     window.setTimeout(() => setNotice(''), 3600);
   }
 
+  function handleAppTouchStart(event: TouchEvent<HTMLElement>) {
+    const target = event.target as HTMLElement;
+    if (target.closest('input, textarea, button, .message-bubble, .story-viewer-backdrop, .modal-backdrop, .peer-profile-page, .stories-section')) return;
+    const touch = event.touches[0];
+    swipeStart.current = { x: touch.clientX, y: touch.clientY };
+  }
+
+  function handleAppTouchEnd(event: TouchEvent<HTMLElement>) {
+    if (!swipeStart.current) return;
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < 75 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+    if (dx < 0) {
+      if (mobileTab === 'chats') { setMobileTab('status'); setMobileList(true); }
+      else if (mobileTab === 'status') { setMobileTab('profile'); setShowProfile(true); }
+    } else {
+      if (mobileTab === 'profile') { setShowProfile(false); setMobileTab('status'); }
+      else if (mobileTab === 'status') { setMobileTab('chats'); setMobileList(true); }
+    }
+  }
+
   async function handleSend(event?: FormEvent) {
     event?.preventDefault();
     const text = compose.trim();
     if (!text || !activeThread || busy) return;
     setCompose('');
     if (demoMode) {
-      const sent: ChatMessage = { id: `local-${Date.now()}`, text, senderId: 'me', createdAt: new Date() };
+      const sent: ChatMessage = { id: `local-${Date.now()}`, text, senderId: 'me', createdAt: new Date(), replyTo: replyTo ? { messageId: replyTo.id, text: replyTo.text, senderName: replyTo.senderId === (firebaseUser?.uid ?? 'me') ? 'You' : activeThread.peer.name } : null };
       setMessages((current) => [...current, sent]);
+      setReplyTo(null);
       setThreads((current) => current.map((thread) => thread.id === activeThread.id
         ? { ...thread, lastMessage: sent, updatedAt: sent.createdAt }
         : thread).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()));
@@ -189,7 +216,8 @@ function App() {
     if (!firebaseUser) return;
     setBusy(true);
     try {
-      await sendChatMessage(activeThread.id, firebaseUser.uid, text);
+      await sendChatMessage(activeThread.id, firebaseUser.uid, text, replyTo ? { messageId: replyTo.id, text: replyTo.text, senderName: replyTo.senderId === firebaseUser.uid ? 'You' : activeThread.peer.name } : null);
+      setReplyTo(null);
     } catch (error) {
       setCompose(text);
       showNotice(error instanceof Error ? error.message : 'Message could not be sent.');
@@ -261,6 +289,7 @@ function App() {
     setMobileList(false);
     setShowDetails(false);
     setMessageSearch('');
+    setReplyTo(null);
     setShowMessageSearch(false);
   }
 
@@ -369,7 +398,7 @@ function App() {
                   {newDay && <div className="day-divider"><span>{messageDay(message.createdAt)}</span></div>}
                   <div className={`message-row ${own ? 'message-row-own' : ''}`} style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
                   {!own && <Avatar profile={activeThread.peer} size="xs" />}
-                  <div className={`message-bubble ${own ? 'message-bubble-own' : ''}`} onClick={() => setSelectedMessageId(message.id)} onContextMenu={(event) => { event.preventDefault(); setSelectedMessageId(message.id); }} onTouchStart={() => { longPressTimer.current = window.setTimeout(() => setSelectedMessageId(message.id), 520); }} onTouchEnd={() => { if (longPressTimer.current) window.clearTimeout(longPressTimer.current); }} onTouchMove={() => { if (longPressTimer.current) window.clearTimeout(longPressTimer.current); }}><p>{message.text}</p><div className="message-meta"><time>{messageTime(message.createdAt)}</time>{own && <CheckCheck size={14} className="message-check" />}</div>{message.reactions && message.reactions.length > 0 && <div className="message-reaction-list">{Array.from(new Set(message.reactions.map((reaction) => reaction.emoji))).map((emoji) => <span key={emoji}>{emoji} {message.reactions!.filter((reaction) => reaction.emoji === emoji).length}</span>)}</div>}{selectedMessageId === message.id && <div className="message-actions"><button type="button" onClick={() => handleMessageReaction(message.id, '❤️')}>❤️</button><button type="button" onClick={() => handleMessageReaction(message.id, '😂')}>😂</button><button type="button" onClick={() => handleMessageReaction(message.id, '👍')}>👍</button><button type="button" onClick={() => handleMessageReaction(message.id, '🔥')}>🔥</button>{own && <button type="button" className="message-delete-action" onClick={() => handleDeleteMessage(message)}><Trash2 size={14} /> Delete</button>}<button type="button" onClick={() => setSelectedMessageId(null)} aria-label="Close actions">×</button></div>}</div>
+                  <div className={`message-bubble ${own ? 'message-bubble-own' : ''}`} onClick={() => setSelectedMessageId(message.id)} onContextMenu={(event) => { event.preventDefault(); setSelectedMessageId(message.id); }} onTouchStart={(event) => { swipeStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }; longPressTimer.current = window.setTimeout(() => setSelectedMessageId(message.id), 520); }} onTouchEnd={(event) => { if (longPressTimer.current) window.clearTimeout(longPressTimer.current); const start = swipeStart.current; swipeStart.current = null; if (start && event.changedTouches[0].clientX - start.x > 65 && Math.abs(event.changedTouches[0].clientY - start.y) < 55) { setReplyTo(message); setSelectedMessageId(null); } }} onTouchMove={() => { if (longPressTimer.current) window.clearTimeout(longPressTimer.current); }}><p>{message.replyTo && <span className="message-reply-quote"><strong>{message.replyTo.senderName}</strong>{message.replyTo.text}</span>}{message.text}</p><div className="message-meta"><time>{messageTime(message.createdAt)}</time>{own && <CheckCheck size={14} className="message-check" />}</div>{message.reactions && message.reactions.length > 0 && <div className="message-reaction-list">{Array.from(new Set(message.reactions.map((reaction) => reaction.emoji))).map((emoji) => <span key={emoji}>{emoji} {message.reactions!.filter((reaction) => reaction.emoji === emoji).length}</span>)}</div>}{selectedMessageId === message.id && <div className="message-actions"><button type="button" onClick={() => handleMessageReaction(message.id, '❤️')}>❤️</button><button type="button" onClick={() => handleMessageReaction(message.id, '😂')}>😂</button><button type="button" onClick={() => handleMessageReaction(message.id, '👍')}>👍</button><button type="button" onClick={() => handleMessageReaction(message.id, '🔥')}>🔥</button>{own && <button type="button" className="message-delete-action" onClick={() => handleDeleteMessage(message)}><Trash2 size={14} /> Delete</button>}<button type="button" onClick={() => setSelectedMessageId(null)} aria-label="Close actions">×</button></div>}</div>
                   </div>
                 </Fragment>;
               })}
@@ -379,6 +408,7 @@ function App() {
             {showDetails && <aside className="details-card"><button type="button" className="details-close" onClick={() => setShowDetails(false)} aria-label="Close chat details"><X size={16} /></button><Avatar profile={activeThread.peer} size="xl" online={activeThread.peer.online} /><h3>{activeThread.peer.name}</h3>{activeThread.peer.phoneNumber && <span className="details-phone">{activeThread.peer.phoneNumber}</span>}<p>{activeThread.peer.about || 'A Lanchat friend'}</p><div className="details-note"><ShieldCheck size={15} />Your conversation details.</div></aside>}
           </div>
           <form className="composer" onSubmit={handleSend}>
+            {replyTo && <div className="reply-composer-preview"><span><strong>Replying to {replyTo.senderId === (firebaseUser?.uid ?? 'me') ? 'yourself' : activeThread.peer.name}</strong><small>{replyTo.text}</small></span><button type="button" onClick={() => setReplyTo(null)} aria-label="Cancel reply"><X size={16} /></button></div>}
             <button type="button" className="composer-tool" aria-label="Emoji picker" onClick={() => setCompose((value) => `${value}${value ? ' ' : ''}🙂`)}><Smile size={21} /></button>
             <button type="button" className="composer-tool attach-tool" aria-label="Attach file" onClick={() => showNotice('File attachments are not included yet.')}><Paperclip size={20} /></button>
             <input value={compose} onChange={(event) => setCompose(event.target.value)} maxLength={4000} placeholder={`Write ${activeThread.peer.name.split(' ')[0]} a message…`} aria-label="Message text" />
@@ -397,18 +427,18 @@ function App() {
         <StoriesBar user={firebaseUser ? { uid: firebaseUser.uid } : null} profile={profile} demoMode={demoMode} onNotice={showNotice} />
       </section>
       <nav className="mobile-bottom-nav" aria-label="Main navigation">
-        <button type="button" className={mobileTab === 'chats' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('chats'); setMobileList(true); }} aria-label="Chats">
+        <button type="button" className={mobileTab === 'chats' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('chats'); setMobileList(true); setShowProfile(false); }} aria-label="Chats">
           <MessageCircle size={22} strokeWidth={2.2} /><span>Chats</span>
         </button>
-        <button type="button" className={mobileTab === 'status' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('status'); setMobileList(true); }} aria-label="Status">
+        <button type="button" className={mobileTab === 'status' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('status'); setMobileList(true); setShowProfile(false); }} aria-label="Status">
           <CircleDot size={22} strokeWidth={2.1} /><span>Status</span>
         </button>
-        <button type="button" className="mobile-nav-item" onClick={() => setShowProfile(true)} aria-label="Profile">
+        <button type="button" className="mobile-nav-item" onClick={() => { setMobileTab('profile'); setShowProfile(true); }} aria-label="Profile">
           <UserRound size={22} strokeWidth={2.1} /><span>Profile</span>
         </button>
       </nav>
       {showNewChat && <NewChatDialog onClose={() => setShowNewChat(false)} onStart={handleNewChat} demoMode={demoMode} contacts={demoUsers} />}
-      {showProfile && <ProfileDialog profile={profile} onClose={() => setShowProfile(false)} onSave={handleSaveProfile} busy={busy} />}
+      {showProfile && <ProfileDialog profile={profile} onClose={() => { setShowProfile(false); setMobileTab('chats'); }} onSave={handleSaveProfile} busy={busy} />}
       {notice && <div className="toast" role="status"><span className="toast-check"><Check size={14} /></span>{notice}<button type="button" aria-label="Dismiss" onClick={() => setNotice('')}><X size={15} /></button></div>}
     </main>
   );
