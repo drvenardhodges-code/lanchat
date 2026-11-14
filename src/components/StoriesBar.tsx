@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type TouchEvent } from 'react';
-import { addDoc, collection, deleteDoc, doc, limit, onSnapshot, orderBy, query, setDoc, Timestamp, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, limit, onSnapshot, orderBy, query, setDoc, Timestamp, where } from 'firebase/firestore';
 import { Eye, Heart, ImagePlus, LoaderCircle, Plus, Send, Trash2, Video, X, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { db } from '../lib/firebase';
@@ -36,8 +36,8 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const [previewUrl, setPreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  const [viewers, setViewers] = useState<{ userId: string; userName: string }[]>([]);
-  const [likers, setLikers] = useState<{ userId: string; userName: string }[]>([]);
+  const [viewers, setViewers] = useState<{ userId: string; userName: string; photoURL: string }[]>([]);
+  const [likers, setLikers] = useState<{ userId: string; userName: string; photoURL: string }[]>([]);
   const [hasReacted, setHasReacted] = useState(false);
   const [engagementSheet, setEngagementSheet] = useState<'views' | 'likes' | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -142,7 +142,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
     if (activeStory.userId !== user.uid) {
       // Record this viewer once, then keep this user's own reaction in sync.
       void setDoc(doc(viewsRef, user.uid), {
-        userId: user.uid, userName: profile.name, viewedAt: Timestamp.now(),
+        userId: user.uid, userName: profile.name, photoURL: profile.photoURL || '', viewedAt: Timestamp.now(),
       }, { merge: true }).catch(() => onNotice('Could not record this story view. Check your Firestore rules.'));
       stopMyReaction = onSnapshot(doc(reactionsRef, user.uid), (snapshot) => {
         setHasReacted(snapshot.exists());
@@ -182,7 +182,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
         await deleteDoc(reactionRef);
         setHasReacted(false);
       } else {
-        await setDoc(reactionRef, { userId: user.uid, userName: profile.name, emoji: '❤️', createdAt: Timestamp.now() });
+        await setDoc(reactionRef, { userId: user.uid, userName: profile.name, photoURL: profile.photoURL || '', emoji: '❤️', createdAt: Timestamp.now() });
         setHasReacted(true);
       }
     } catch { onNotice('Could not send your reaction. Check your Firestore rules.'); }
@@ -304,7 +304,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
           <div className="story-sheet-handle" />
           <header><div><strong>{engagementSheet === 'views' ? 'People who viewed' : 'People who liked'}</strong><small>{engagementSheet === 'views' ? viewers.length : likers.length} {engagementSheet === 'views' ? 'views' : 'likes'}</small></div><button type="button" onClick={() => setEngagementSheet(null)} aria-label="Close list"><X size={19} /></button></header>
           <div className="story-sheet-list">
-            {(engagementSheet === 'views' ? viewers : likers).length ? (engagementSheet === 'views' ? viewers : likers).map((person) => <div className="story-sheet-person" key={person.userId}><Avatar profile={{ uid: person.userId, name: person.userName, photoURL: '', about: '', phoneNumber: '' }} size="sm" /><span>{person.userName}</span></div>) : <p className="story-sheet-empty">{engagementSheet === 'views' ? 'No one has viewed your status yet.' : 'No one has liked your status yet.'}</p>}
+            {(engagementSheet === 'views' ? viewers : likers).length ? (engagementSheet === 'views' ? viewers : likers).map((person) => <div className="story-sheet-person" key={person.userId}><Avatar profile={{ uid: person.userId, name: person.userName, photoURL: person.photoURL, about: '', phoneNumber: '' }} size="sm" /><span>{person.userName}</span></div>) : <p className="story-sheet-empty">{engagementSheet === 'views' ? 'No one has viewed your status yet.' : 'No one has liked your status yet.'}</p>}
           </div>
         </section>
       </div>}
