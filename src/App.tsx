@@ -235,7 +235,7 @@ function App() {
     // Page swipes belong to the inbox/status/profile screens only, never an open chat.
     if (!mobileList && !showProfile) return;
     const target = event.target as HTMLElement;
-    if (target.closest('input, textarea, select, button, .message-bubble, .story-viewer-backdrop, .peer-profile-page, .avatar-crop-page, .stories-track, .inbox-category-tabs, .thread-list')) return;
+    if (target.closest('input, textarea, select, button, .message-bubble, .story-viewer-backdrop, .peer-profile-page, .avatar-crop-page, .stories-track, .inbox-category-tabs')) return;
     if (target.closest('.modal-backdrop')) return;
     const touch = event.touches[0];
     swipeStart.current = { x: touch.clientX, y: touch.clientY };
