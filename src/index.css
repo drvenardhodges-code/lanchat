@@ -1464,3 +1464,59 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
   .profile-page-card > .modal-heading { margin-bottom: 18px; }
   .profile-page-card .profile-photo-edit { margin: 20px 0 28px; }
 }
+
+
+/* WhatsApp-like horizontal page transitions on mobile navigation. */
+@media (max-width: 640px) {
+  .inbox-panel,
+  .chat-panel,
+  .status-page {
+    display: flex !important;
+    transition: transform 280ms cubic-bezier(.22,.61,.36,1), opacity 220ms ease;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  .inbox-panel {
+    transform: translate3d(-100%,0,0);
+    z-index: 4;
+  }
+  .inbox-panel.inbox-panel-mobile-open {
+    transform: translate3d(0,0,0);
+  }
+  .chat-panel {
+    transform: translate3d(0,0,0);
+    z-index: 5;
+  }
+  .chat-panel.chat-panel-mobile-hidden {
+    transform: translate3d(100%,0,0);
+    pointer-events: none;
+  }
+  .status-page {
+    display: block !important;
+    z-index: 8;
+    transform: translate3d(100%,0,0);
+    opacity: .96;
+    pointer-events: none;
+  }
+  .status-page.status-page-open {
+    transform: translate3d(0,0,0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .profile-page-backdrop {
+    animation: lanchat-page-enter 280ms cubic-bezier(.22,.61,.36,1) both;
+  }
+  .peer-profile-page {
+    animation: lanchat-page-enter 260ms cubic-bezier(.22,.61,.36,1) both;
+  }
+}
+@keyframes lanchat-page-enter {
+  from { transform: translate3d(100%,0,0); }
+  to { transform: translate3d(0,0,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inbox-panel, .chat-panel, .status-page, .profile-page-backdrop, .peer-profile-page {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
