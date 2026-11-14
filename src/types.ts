@@ -13,6 +13,7 @@ export interface ChatMessage {
   senderId: string;
   createdAt: Date;
   reactions?: { userId: string; emoji: string }[];
+  replyTo?: { messageId: string; text: string; senderName: string } | null;
 }
 
 export interface Thread {
