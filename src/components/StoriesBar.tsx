@@ -106,6 +106,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const activeStory = activeGroup?.stories[viewer?.storyIndex ?? 0];
 
   function nextStory() {
+    setStoryDirection('next');
     setViewer((current) => {
       if (!current) return null;
       const group = groups[current.groupIndex];
@@ -116,6 +117,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
     });
   }
   function previousStory() {
+    setStoryDirection('previous');
     setViewer((current) => {
       if (!current) return null;
       if (current.storyIndex > 0) return { ...current, storyIndex: current.storyIndex - 1 };
@@ -300,7 +302,8 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
             <button type="button" className="story-close" onClick={() => setViewer(null)} aria-label="Close story"><X size={20} /></button>
           </header>
           <div
-            key={activeStory.id}\n            className={'story-viewer-content story-transition-' + storyDirection + ' ' + (activeStory.mediaType === 'text' ? 'story-text-content' : '')}
+            key={activeStory.id}
+            className={'story-viewer-content story-transition-' + storyDirection + ' ' + (activeStory.mediaType === 'text' ? 'story-text-content' : '')}
             onTouchStart={handleStoryTouchStart}
             onTouchEnd={handleStoryTouchEnd}
             onTouchCancel={() => { touchStartRef.current = null; }}
