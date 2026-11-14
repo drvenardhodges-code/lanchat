@@ -89,7 +89,7 @@ export function ProfileDialog({ profile, onClose, onSave, busy }: { profile: Pro
       <header className="avatar-crop-header"><button type="button" onClick={() => setCropOpen(false)} aria-label="Back"><ArrowLeft size={20} /></button><div><strong>Adjust your photo</strong><small>Move and zoom to get the perfect fit</small></div><button type="button" onClick={() => { setZoom(1); setOffset({ x: 0, y: 0 }); }} aria-label="Reset crop"><RotateCcw size={18} /></button></header>
       <main className="avatar-crop-main">
         <div ref={cropFrameRef} className="avatar-crop-frame" onPointerDown={startCropDrag} onPointerMove={moveCropDrag} onPointerUp={() => setDragStart(null)} onPointerCancel={() => setDragStart(null)}>
-          <img ref={cropImageRef} src={URL.createObjectURL(image)} alt="Crop preview" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain', transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` }} />
+          <img ref={cropImageRef} src={preview} alt="Crop preview" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain', transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` }} />
           <span className="avatar-crop-mask" />
         </div>
         <p>Drag the photo to reposition it. Your profile picture will appear as a circle.</p>
