@@ -39,6 +39,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const [viewers, setViewers] = useState<{ userId: string; userName: string }[]>([]);
   const [likers, setLikers] = useState<{ userId: string; userName: string }[]>([]);
   const [hasReacted, setHasReacted] = useState(false);
+  const [engagementSheet, setEngagementSheet] = useState<'views' | 'likes' | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -48,7 +49,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
     touchStartRef.current = { x: touch.clientX, y: touch.clientY };
   }
 
-  function handleStoryTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
+  function handleStoryTouchEnd(event: TouchEvent<HTMLDivElement>) {
     const start = touchStartRef.current;
     touchStartRef.current = null;
     const touch = event.changedTouches[0];
@@ -120,6 +121,10 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       return current;
     });
   }
+  useEffect(() => {
+    setEngagementSheet(null);
+  }, [activeStory?.id]);
+
   useEffect(() => {
     if (!viewer || !activeStory || !db || !user) {
       setViewers([]); setLikers([]); setHasReacted(false);
@@ -283,16 +288,25 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
           <footer className="story-engagement">
             {activeStory.userId === user?.uid ? <>
               <div className="story-owner-metrics">
-                <div className="story-owner-metric"><span><Eye size={17} /> View</span><strong>{viewers.length}</strong></div>
-                <div className="story-owner-metric"><span><Heart size={17} /> Like</span><strong>{likers.length}</strong></div>
-              </div>
-              <div className="story-engagement-people">
-                <section><strong>👁 People who viewed</strong>{viewers.length ? viewers.map((person) => <span key={person.userId}>{person.userName}</span>) : <small>No views yet</small>}</section>
-                <section><strong>🤍 People who liked</strong>{likers.length ? likers.map((person) => <span key={person.userId}>{person.userName}</span>) : <small>No likes yet</small>}</section>
+                <button type="button" className="story-owner-metric" onClick={() => setEngagementSheet('views')} aria-label={`View story viewers, ${viewers.length}`}>
+                  <span><Eye size={17} /> View</span><strong>{viewers.length}</strong>
+                </button>
+                <button type="button" className="story-owner-metric" onClick={() => setEngagementSheet('likes')} aria-label={`View story likes, ${likers.length}`}>
+                  <span><Heart size={17} /> Like</span><strong>{likers.length}</strong>
+                </button>
               </div>
             </> : <button type="button" className={hasReacted ? 'story-react-button story-reacted' : 'story-react-button'} onClick={() => void toggleReaction()} aria-label={hasReacted ? 'Remove reaction' : 'Like story'}><Heart size={18} fill={hasReacted ? 'currentColor' : 'none'} /> {hasReacted ? 'Liked' : 'Like'}</button>}
           </footer>
         </div>
+      </div>}
+      {engagementSheet && activeStory?.userId === user?.uid && <div className="story-sheet-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setEngagementSheet(null); }}>
+        <section className="story-people-sheet" role="dialog" aria-modal="true" aria-label={engagementSheet === 'views' ? 'People who viewed your status' : 'People who liked your status'}>
+          <div className="story-sheet-handle" />
+          <header><div><strong>{engagementSheet === 'views' ? 'People who viewed' : 'People who liked'}</strong><small>{engagementSheet === 'views' ? viewers.length : likers.length} {engagementSheet === 'views' ? 'views' : 'likes'}</small></div><button type="button" onClick={() => setEngagementSheet(null)} aria-label="Close list"><X size={19} /></button></header>
+          <div className="story-sheet-list">
+            {(engagementSheet === 'views' ? viewers : likers).length ? (engagementSheet === 'views' ? viewers : likers).map((person) => <div className="story-sheet-person" key={person.userId}><Avatar profile={{ uid: person.userId, name: person.userName, photoURL: '', about: '', phoneNumber: '' }} size="sm" /><span>{person.userName}</span></div>) : <p className="story-sheet-empty">{engagementSheet === 'views' ? 'No one has viewed your status yet.' : 'No one has liked your status yet.'}</p>}
+          </div>
+        </section>
       </div>}
     </section>
   );
