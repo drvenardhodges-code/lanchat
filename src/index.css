@@ -920,3 +920,15 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 .avatar-crop-footer { display:flex; justify-content:flex-end; gap:10px; padding:14px 18px calc(18px + env(safe-area-inset-bottom)); border-top:1px solid var(--line,rgba(196,181,253,.16)); }
 :root[data-theme="light"] .avatar-crop-page { color:#39264f; background:#fff; }
 @media (max-width:640px) { .avatar-crop-frame { width:min(78vw,320px); } }
+
+/* Keep app navigation out of full-page profile and dialog experiences. */
+.app-shell:has(.avatar-crop-page) .mobile-bottom-nav,
+.app-shell:has(.peer-profile-page) .mobile-bottom-nav,
+.app-shell:has(.modal-backdrop) .mobile-bottom-nav {
+  display: none !important;
+}
+.app-shell:has(.avatar-crop-page) .app-rail,
+.app-shell:has(.peer-profile-page) .app-rail,
+.app-shell:has(.modal-backdrop) .app-rail {
+  display: none !important;
+}
