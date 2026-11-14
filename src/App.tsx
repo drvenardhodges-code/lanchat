@@ -177,7 +177,7 @@ function App() {
 
   function handleAppTouchStart(event: TouchEvent<HTMLElement>) {
     const target = event.target as HTMLElement;
-    if (target.closest('input, textarea, button, .message-bubble, .story-viewer-backdrop, .modal-backdrop, .peer-profile-page')) return;
+    if (target.closest('input, textarea, button, .message-bubble, .story-viewer-backdrop, .peer-profile-page') || (target.closest('.modal-backdrop') && !target.closest('.profile-modal'))) return;
     const touch = event.touches[0];
     swipeStart.current = { x: touch.clientX, y: touch.clientY };
   }
