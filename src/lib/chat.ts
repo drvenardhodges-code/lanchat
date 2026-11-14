@@ -185,6 +185,29 @@ export async function sendChatMessage(chatId: string, senderId: string, text: st
   await batch.commit();
 }
 
+
+export async function sendStoryReply(senderId: string, recipientId: string, senderName: string, story: { id: string; text: string; mediaType: string }, replyText: string) {
+  const firestore = requireDb();
+  const chatsQuery = query(collection(firestore, 'chats'), where('participants', 'array-contains', senderId), limit(80));
+  const snapshot = await getDocs(chatsQuery);
+  const existing = snapshot.docs.find((entry) => {
+    const participants = entry.data().participants;
+    return Array.isArray(participants) && participants.includes(recipientId);
+  });
+  let chatId = existing?.id;
+  if (!chatId) {
+    const chatRef = doc(collection(firestore, 'chats'));
+    await setDoc(chatRef, { participants: [senderId, recipientId], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    chatId = chatRef.id;
+  }
+  const preview = story.text.trim() || (story.mediaType === 'video' ? 'Video status' : story.mediaType === 'image' ? 'Photo status' : 'Status');
+  await sendChatMessage(chatId, senderId, replyText, {
+    messageId: story.id,
+    text: preview,
+    senderName: `${senderName}'s status`,
+  });
+}
+
 export async function getChatByPhone(currentUid: string, phone: string): Promise<Thread> {
   const firestore = requireDb();
   const normalized = normalizePhone(phone);
