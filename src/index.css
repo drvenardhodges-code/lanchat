@@ -1259,3 +1259,20 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 :root[data-theme="light"] .story-add-circle{color:#352047}
 :root[data-theme="light"] .story-add-avatar>i{border-color:#fff}
 @media(max-width:640px){.stories-track>.story-add-circle{display:flex;width:65px;min-width:65px;min-height:0;flex-direction:column;align-items:center;gap:7px;padding:0;border:0;border-radius:0;background:transparent;text-align:center}.stories-track>.story-add-circle .story-add-avatar{width:54px;height:54px}.stories-track>.story-add-circle .story-add-label{width:100%;text-align:center}}
+
+
+/* Keep every status item circular, including on the dedicated mobile status page. */
+.stories-track{display:flex;flex-direction:row;align-items:flex-start;gap:13px;overflow-x:auto;overflow-y:hidden}
+.stories-track>.story-person,
+.stories-track>.story-add-circle,
+.status-page .stories-track>.story-person,
+.status-page .stories-track>.story-add-circle{display:flex;flex:0 0 65px;width:65px;min-width:65px;min-height:0;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;text-align:center}
+.stories-track>.story-person .story-ring,
+.status-page .stories-track>.story-person .story-ring{display:grid;width:56px;height:56px;flex:0 0 56px;place-items:center;padding:3px;border:2px solid #b65aff;border-radius:50%;background:transparent}
+.stories-track>.story-person .story-ring>.avatar,
+.status-page .stories-track>.story-person .story-ring>.avatar{width:100%;height:100%;border-radius:50%}
+.stories-track>.story-person .story-person-name,
+.status-page .stories-track>.story-person .story-person-name{display:block;width:65px;max-width:65px;overflow:hidden;color:var(--muted,#b7a9c9);font-size:10px;font-weight:650;text-align:center;text-overflow:ellipsis;white-space:nowrap}
+.status-page .stories-track{flex-direction:row;align-items:flex-start;gap:13px;overflow-x:auto;overflow-y:hidden}
+:root[data-theme="light"] .stories-track>.story-person .story-person-name,
+:root[data-theme="light"] .status-page .stories-track>.story-person .story-person-name{color:#887697}
