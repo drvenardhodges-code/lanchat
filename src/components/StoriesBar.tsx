@@ -254,9 +254,10 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
     <section className="stories-section" aria-label="Stories">
       <div className="stories-heading"><span>STORIES</span><span className="stories-expiry"><Clock3 size={11} /> 24 HOURS</span></div>
       <div className="stories-track">
-        <button type="button" className="story-person story-add" onClick={() => { setError(''); setComposerOpen(true); }}>
-          <span className="story-ring story-add-ring"><span className="story-avatar-placeholder"><Plus size={21} /></span></span>
-          <span className="story-person-name">Your story</span>
+        <button type="button" className="story-self-card" onClick={() => { if (ownGroup) setViewer({ groupIndex: groups.indexOf(ownGroup), storyIndex: 0 }); else { setError(''); setComposerOpen(true); } }}>
+          <span className="story-self-avatar"><Avatar profile={profile} size="lg" /><i><Plus size={13} /></i></span>
+          <span className="story-self-copy"><strong>My status</strong><small>{ownGroup ? 'Tap to view your update' : 'Share a photo, video or thought'}</small></span>
+          <span className="story-self-action">{ownGroup ? 'View' : 'Add'}</span>
         </button>
         {groups.filter((group) => group.userId !== user?.uid).map((group) => (
           <button type="button" className="story-person" key={group.userId} onClick={() => setViewer({ groupIndex: groups.indexOf(group), storyIndex: 0 })}>
@@ -264,9 +265,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
             <span className="story-person-name">{group.userName.split(' ')[0]}</span>
           </button>
         ))}
-        {ownGroup && <button type="button" className="story-person story-own-view" onClick={() => setViewer({ groupIndex: groups.indexOf(ownGroup), storyIndex: 0 })}>
-          <span className="story-ring"><Avatar profile={profile} size="md" /></span><span className="story-person-name">Your updates</span>
-        </button>}
+
         {!groups.length && <span className="stories-empty">{demoMode ? 'Connect your account to share stories.' : 'Your friends’ stories will appear here.'}</span>}
       </div>
 
