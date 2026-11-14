@@ -143,10 +143,10 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       // Record this viewer once, then keep this user's own reaction in sync.
       void setDoc(doc(viewsRef, user.uid), {
         userId: user.uid, userName: profile.name, photoURL: profile.photoURL || '', viewedAt: Timestamp.now(),
-      }, { merge: true }).catch(() => onNotice('Could not record this story view. Check your Firestore rules.'));
+      }, { merge: true }).catch(() => { /* A failed view write should never interrupt viewing a friend's status. */ });
       stopMyReaction = onSnapshot(doc(reactionsRef, user.uid), (snapshot) => {
         setHasReacted(snapshot.exists());
-      }, () => onNotice('Could not load your story reaction.'));
+      }, () => { /* Keep the status viewer quiet if reaction metadata is unavailable. */ });
     } else {
       // Only the owner sees the engagement panel. Both lists update live.
       stopViews = onSnapshot(query(viewsRef, orderBy('viewedAt', 'desc')), async (snapshot) => {
@@ -173,7 +173,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       if (cancelled) return;
       setLikers(people);
       if (activeStory.userId !== user.uid) setHasReacted(snapshot.docs.some((entry) => entry.id === user.uid));
-    }, () => onNotice('Could not load story likes. Check your Firestore rules.'));
+    }, () => { if (activeStory.userId === user.uid) onNotice('Could not load story likes.'); });
 
     return () => {
       cancelled = true;
