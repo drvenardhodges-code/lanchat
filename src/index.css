@@ -1007,3 +1007,82 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 :root[data-theme="light"] .story-self-avatar>.avatar{border-color:#fff}
 :root[data-theme="light"] .story-self-avatar>i{border-color:#fff}
 :root[data-theme="light"] .story-self-action{color:#7838b2;background:#f3e8ff}
+
+
+/* Fifth-page inspired conversation cards: make every chat feel like its own premium glass tile. */
+.thread-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 10px 14px 22px;
+  background: transparent;
+}
+.thread-card {
+  isolation: isolate;
+  min-height: 82px;
+  gap: 14px;
+  margin: 0;
+  padding: 14px 15px;
+  overflow: hidden;
+  border: 1px solid rgba(180, 130, 245, .2);
+  border-radius: 21px;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(168, 85, 247, .11), transparent 58%),
+    linear-gradient(135deg, rgba(255,255,255,.075), rgba(139,92,246,.035));
+  box-shadow: 0 8px 24px rgba(18, 8, 34, .12), inset 0 1px 0 rgba(255,255,255,.07);
+  transform: none;
+}
+.thread-card::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 auto 0 0;
+  width: 3px;
+  content: "";
+  opacity: 0;
+  background: linear-gradient(180deg, #e879f9, #8b5cf6);
+  transition: opacity .2s;
+}
+.thread-card:hover {
+  border-color: rgba(192, 132, 252, .48);
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(168, 85, 247, .17), transparent 62%),
+    linear-gradient(135deg, rgba(255,255,255,.09), rgba(139,92,246,.07));
+  box-shadow: 0 12px 30px rgba(98, 47, 155, .18), inset 0 1px 0 rgba(255,255,255,.1);
+  transform: translateY(-2px);
+}
+.thread-card.selected {
+  border-color: rgba(192, 132, 252, .7);
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(168, 85, 247, .22), transparent 62%),
+    linear-gradient(115deg, rgba(139,92,246,.2), rgba(217,70,239,.09));
+  box-shadow: 0 0 0 1px rgba(168,85,247,.12), 0 12px 30px rgba(98,47,155,.2), inset 0 1px 0 rgba(255,255,255,.12);
+}
+.thread-card.selected::before { opacity: 1; }
+.thread-avatar-wrap { padding: 3px; border: 1px solid rgba(192,132,252,.38); border-radius: 50%; background: linear-gradient(145deg,rgba(216,180,254,.18),rgba(139,92,246,.08)); box-shadow: 0 0 18px rgba(168,85,247,.13); }
+.thread-avatar-wrap .avatar { box-shadow: 0 0 0 2px var(--surface,#100c1b), 0 0 0 3px rgba(192,132,252,.22); }
+.thread-copy { display: flex; flex-direction: column; justify-content: center; gap: 1px; }
+.thread-title-row { gap: 9px; }
+.thread-title-row strong { color: var(--text,#f5edff); font-size: 13px; font-weight: 800; letter-spacing: -.025em; }
+.thread-title-row time { padding: 4px 7px; border: 1px solid rgba(192,132,252,.16); border-radius: 999px; color: var(--muted,#a99ab9); background: rgba(139,92,246,.07); font-size: 9px; }
+.thread-preview-row { margin-top: 7px; gap: 9px; }
+.thread-preview { color: var(--muted,#b7a9c9); font-size: 11px; line-height: 1.35; }
+.delivered-icon { color: #c084fc; filter: drop-shadow(0 0 5px rgba(192,132,252,.35)); }
+.new-message-indicator { width: 9px; height: 9px; border: 2px solid var(--surface,#100c1b); background: #d879ff; box-shadow: 0 0 0 2px rgba(216,121,255,.2), 0 0 12px rgba(216,121,255,.8); }
+:root[data-theme="light"] .thread-card {
+  border-color: #eadcf8;
+  background: radial-gradient(ellipse at 0% 0%,rgba(168,85,247,.08),transparent 60%),linear-gradient(135deg,#fff,#fbf7ff);
+  box-shadow: 0 8px 22px rgba(78,39,112,.07),inset 0 1px 0 #fff;
+}
+:root[data-theme="light"] .thread-card:hover { border-color:#d5b6f3; background:linear-gradient(135deg,#fff,#f8efff); box-shadow:0 12px 26px rgba(98,47,155,.12); }
+:root[data-theme="light"] .thread-card.selected { border-color:#c99aef; background:linear-gradient(115deg,#f1e5ff,#fff7ff); box-shadow:0 0 0 1px rgba(168,85,247,.08),0 10px 25px rgba(98,47,155,.1); }
+:root[data-theme="light"] .thread-avatar-wrap { border-color:#e3c8fa; background:linear-gradient(145deg,#f8edff,#fff); }
+:root[data-theme="light"] .thread-avatar-wrap .avatar { box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(168,85,247,.2); }
+:root[data-theme="light"] .thread-title-row strong { color:#352047; }
+:root[data-theme="light"] .thread-title-row time { color:#8c759f; background:#f8f0ff; border-color:#eee1fa; }
+:root[data-theme="light"] .thread-preview { color:#887697; }
+@media(max-width:640px) {
+  .thread-list { gap:10px; padding:10px 13px calc(90px + env(safe-area-inset-bottom)); }
+  .thread-card { min-height:80px; padding:13px 13px; border-radius:19px; }
+  .thread-title-row strong { font-size:13px; }
+  .thread-preview { font-size:11px; }
+}
