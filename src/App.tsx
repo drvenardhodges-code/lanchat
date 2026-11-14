@@ -380,7 +380,8 @@ function App() {
   }
 
   async function handleSignOut() {
-    if (auth) await signOut(auth);
+    try { if (auth) await signOut(auth); }
+    catch (error) { showNotice(error instanceof Error ? error.message : 'Could not log out.'); }
   }
 
   if (!demoMode && !firebaseUser) {
@@ -506,7 +507,7 @@ function App() {
         </button>
       </nav>
       {showNewChat && <NewChatDialog onClose={() => setShowNewChat(false)} onStart={handleNewChat} demoMode={demoMode} contacts={demoUsers} />}
-      {showProfile && <ProfileDialog profile={profile} onClose={() => { setShowProfile(false); setMobileTab('chats'); }} onSave={handleSaveProfile} busy={busy} />}
+      {showProfile && <ProfileDialog profile={profile} onClose={() => { setShowProfile(false); setMobileTab('chats'); }} onSave={handleSaveProfile} onSignOut={firebaseUser ? handleSignOut : undefined} busy={busy} />}
       {notice && <div className="toast" role="status"><span className="toast-check"><Check size={14} /></span>{notice}<button type="button" aria-label="Dismiss" onClick={() => setNotice('')}><X size={15} /></button></div>}
     </main>
   );
