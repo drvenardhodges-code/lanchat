@@ -943,3 +943,12 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 .message-reply-quote { display:flex; flex-direction:column; gap:3px; margin:0 0 7px; padding:6px 8px; border-left:3px solid #a78bfa; border-radius:5px; color:var(--muted); background:rgba(139,92,246,.1); font-size:11px; }
 .message-reply-quote strong { color:#a78bfa; font-size:10px; }
 .composer { position:relative; }
+
+
+/* Story reply composer */
+.story-viewer-actions { display:flex; width:100%; align-items:center; gap:10px; }
+.story-reply-form { display:flex; min-width:0; flex:1; align-items:center; gap:8px; padding:5px 7px 5px 13px; border:1px solid rgba(255,255,255,.2); border-radius:999px; background:rgba(255,255,255,.1); }
+.story-reply-form input { width:100%; min-width:0; border:0; outline:0; color:#fff; background:transparent; font-size:13px; }
+.story-reply-form input::placeholder { color:rgba(255,255,255,.65); }
+.story-reply-form button { display:grid; width:34px; height:34px; flex:0 0 auto; place-items:center; border:0; border-radius:50%; color:#fff; background:#8b5cf6; }
+.story-reply-form button:disabled { opacity:.45; }
