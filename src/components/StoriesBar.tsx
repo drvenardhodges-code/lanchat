@@ -149,20 +149,28 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       }, () => onNotice('Could not load your story reaction.'));
     } else {
       // Only the owner sees the engagement panel. Both lists update live.
-      stopViews = onSnapshot(query(viewsRef, orderBy('viewedAt', 'desc')), (snapshot) => {
-        if (cancelled) return;
-        setViewers(snapshot.docs.map((entry) => ({
-          userId: entry.id,
-          userName: String(entry.data().userName ?? 'LANChat user'),
-        })));
+      stopViews = onSnapshot(query(viewsRef, orderBy('viewedAt', 'desc')), async (snapshot) => {
+        const people = await Promise.all(snapshot.docs.map(async (entry) => {
+          const data = entry.data();
+          let photoURL = String(data.photoURL ?? '');
+          if (!photoURL) {
+            try { const personProfile = await getDoc(doc(firestore, 'profiles', entry.id)); if (personProfile.exists()) photoURL = String(personProfile.data().photoURL ?? ''); } catch { /* Keep initials if profile access is unavailable. */ }
+          }
+          return { userId: entry.id, userName: String(data.userName ?? 'LANChat user'), photoURL };
+        }));
+        if (!cancelled) setViewers(people);
       }, () => onNotice('Could not load story viewers. Check your Firestore rules.'));
     }
-    stopReactions = onSnapshot(query(reactionsRef, orderBy('createdAt', 'desc')), (snapshot) => {
-      if (cancelled) return;
-      const people = snapshot.docs.map((entry) => ({
-        userId: entry.id,
-        userName: String(entry.data().userName ?? 'LANChat user'),
+    stopReactions = onSnapshot(query(reactionsRef, orderBy('createdAt', 'desc')), async (snapshot) => {
+      const people = await Promise.all(snapshot.docs.map(async (entry) => {
+        const data = entry.data();
+        let photoURL = String(data.photoURL ?? '');
+        if (!photoURL) {
+          try { const personProfile = await getDoc(doc(firestore, 'profiles', entry.id)); if (personProfile.exists()) photoURL = String(personProfile.data().photoURL ?? ''); } catch { /* Keep initials if profile access is unavailable. */ }
+        }
+        return { userId: entry.id, userName: String(data.userName ?? 'LANChat user'), photoURL };
       }));
+      if (cancelled) return;
       setLikers(people);
       if (activeStory.userId !== user.uid) setHasReacted(snapshot.docs.some((entry) => entry.id === user.uid));
     }, () => onNotice('Could not load story likes. Check your Firestore rules.'));
