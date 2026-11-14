@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import {
   ArrowLeft, ArrowUpRight, Check, CheckCheck, CircleHelp, Info,
   MessageCircle, Paperclip, Phone, Plus, Search, Send, Settings2, Crown,
-  ShieldCheck, Smile, Sparkles, X, CircleDot, UserRound, Ban, Flag, Trash2, MoreVertical,
+  ShieldCheck, Smile, Sparkles, X, CircleDot, UserRound, Ban, Flag, Trash2, MoreVertical, Star,
 } from 'lucide-react';
 import { Avatar } from './components/Avatar';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -62,6 +62,9 @@ function App() {
   const [messages, setMessages] = useState<ChatMessage[]>(demoMessages[demoThreads[0]?.id ?? ''] ?? []);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [query, setQuery] = useState('');
+  const [inboxCategory, setInboxCategory] = useState<'all' | 'unread' | 'favorites' | 'groups'>('all');
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => { try { return JSON.parse(window.localStorage.getItem('lanchat-favorites') || '[]') as string[]; } catch { return []; } });
+  const [readAt, setReadAt] = useState<Record<string, number>>(() => { try { return JSON.parse(window.localStorage.getItem('lanchat-read-at') || '{}') as Record<string, number>; } catch { return {}; } });
   const [showInboxSearch, setShowInboxSearch] = useState(false);
   const [messageSearch, setMessageSearch] = useState('');
   const [compose, setCompose] = useState('');
@@ -174,13 +177,18 @@ function App() {
     messageEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, activeId]);
 
+  useEffect(() => { try { window.localStorage.setItem('lanchat-favorites', JSON.stringify(favoriteIds)); } catch { /* Keep favorites for this session. */ } }, [favoriteIds]);
+  useEffect(() => { try { window.localStorage.setItem('lanchat-read-at', JSON.stringify(readAt)); } catch { /* Keep read markers for this session. */ } }, [readAt]);
+
   const filteredThreads = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return threads;
-    return threads.filter((thread) =>
-      `${thread.peer.name} ${thread.lastMessage?.text ?? ''}`.toLowerCase().includes(term),
-    );
-  }, [query, threads]);
+    return threads.filter((thread) => {
+      const matchesSearch = !term || `${thread.peer.name} ${thread.lastMessage?.text ?? ''}`.toLowerCase().includes(term);
+      const unread = Boolean(thread.lastMessage && thread.lastMessage.senderId !== (firebaseUser?.uid ?? 'me') && thread.lastMessage.createdAt.getTime() > (readAt[thread.id] ?? 0));
+      const matchesCategory = inboxCategory === 'all' || (inboxCategory === 'unread' && unread) || (inboxCategory === 'favorites' && favoriteIds.includes(thread.id)) || (inboxCategory === 'groups' && false);
+      return matchesSearch && matchesCategory;
+    });
+  }, [query, threads, inboxCategory, favoriteIds, readAt, firebaseUser?.uid]);
 
   const visibleMessages = useMemo(() => {
     const term = messageSearch.trim().toLowerCase();
@@ -332,6 +340,8 @@ function App() {
   }
 
   function openThread(threadId: string) {
+    const opening = threads.find((thread) => thread.id === threadId);
+    setReadAt((current) => ({ ...current, [threadId]: Math.max(current[threadId] ?? 0, opening?.lastMessage?.createdAt.getTime() ?? Date.now()) }));
     setMobileTab('chats');
     setActiveId(threadId);
     setMobileList(false);
@@ -406,16 +416,24 @@ function App() {
               <button className="reference-add-button" type="button" onClick={() => setShowNewChat(true)} aria-label="New chat"><Plus size={23} /></button>
             </div>
           </div>
+          <div className="inbox-category-tabs" role="tablist" aria-label="Conversation categories">
+            {([{ id: 'all', label: 'All' }, { id: 'unread', label: 'Unread' }, { id: 'favorites', label: 'Favorites' }, { id: 'groups', label: 'Group' }] as const).map((category) => <button key={category.id} type="button" role="tab" aria-selected={inboxCategory === category.id} className={inboxCategory === category.id ? 'active' : ''} onClick={() => setInboxCategory(category.id)}>{category.label}</button>)}
+          </div>
           {showInboxSearch && <label className="search-box reference-search-box"><Search size={16} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a conversation" aria-label="Search conversations" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} /></button>}</label>}
         </header>
         <div className="thread-list reference-thread-list">
           {filteredThreads.length > 0 ? filteredThreads.map((thread, index) => {
             const selected = thread.id === activeId;
-            return <button className={`thread-card reference-thread-card ${selected ? 'selected' : ''}`} key={thread.id} type="button" onClick={() => openThread(thread.id)} style={{ animationDelay: `${index * 35}ms` }}>
-              <div className="thread-avatar-wrap reference-thread-avatar"><Avatar profile={thread.peer} size="lg" online={thread.peer.online} /></div>
-              <div className="thread-copy reference-thread-copy"><div className="thread-title-row"><strong>{thread.peer.name}</strong><time>{messageTime(thread.updatedAt)}</time></div><div className="thread-preview-row"><span className="thread-preview">{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') ? 'You: ' : ''}{thread.lastMessage?.text ?? 'Tap to start chatting'}</span>{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') && <CheckCheck className="delivered-icon" size={14} />}</div></div>
-            </button>;
-          }) : <div className="empty-search"><div className="empty-search-icon"><Search size={18} /></div><strong>No conversations found</strong><span>Try a different name or message.</span></div>}
+            const unread = Boolean(thread.lastMessage && thread.lastMessage.senderId !== (firebaseUser?.uid ?? 'me') && thread.lastMessage.createdAt.getTime() > (readAt[thread.id] ?? 0));
+            const favorite = favoriteIds.includes(thread.id);
+            return <div className={`thread-card reference-thread-card ${selected ? 'selected' : ''}`} key={thread.id} style={{ animationDelay: `${index * 35}ms` }}>
+              <button className="thread-card-open" type="button" onClick={() => openThread(thread.id)} aria-label={`Open chat with ${thread.peer.name}`}>
+                <div className="thread-avatar-wrap reference-thread-avatar"><Avatar profile={thread.peer} size="lg" online={thread.peer.online} /></div>
+                <div className="thread-copy reference-thread-copy"><div className="thread-title-row"><strong>{thread.peer.name}</strong><time>{messageTime(thread.updatedAt)}</time></div><div className="thread-preview-row"><span className="thread-preview">{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') ? 'You: ' : ''}{thread.lastMessage?.text ?? 'Tap to start chatting'}</span>{unread && <i className="inbox-unread-dot" aria-label="Unread" />}{thread.lastMessage?.senderId === (firebaseUser?.uid ?? 'me') && <CheckCheck className="delivered-icon" size={14} />}</div></div>
+              </button>
+              <button type="button" className={`thread-favorite-button ${favorite ? 'is-favorite' : ''}`} aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'} onClick={() => setFavoriteIds((current) => favorite ? current.filter((id) => id !== thread.id) : [...current, thread.id])}><Star size={16} fill={favorite ? 'currentColor' : 'none'} /></button>
+            </div>;
+          }) : <div className="empty-search"><div className="empty-search-icon"><Search size={18} /></div><strong>{inboxCategory === 'groups' ? 'Group chats are coming soon' : inboxCategory === 'favorites' ? 'No favorite chats yet' : inboxCategory === 'unread' ? 'You are all caught up' : 'No conversations found'}</strong><span>{inboxCategory === 'groups' ? 'Group conversations are not supported yet.' : inboxCategory === 'favorites' ? 'Tap the star beside a conversation to save it here.' : inboxCategory === 'unread' ? 'New messages will appear here.' : 'Try a different name or message.'}</span></div>}
         </div>
         <footer className="inbox-footer">
           
