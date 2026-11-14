@@ -1417,3 +1417,50 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
   box-shadow: none !important;
   transform: none !important;
 }
+
+
+/* Profile is a dedicated full-screen page, not a floating dialog. */
+.profile-page-backdrop {
+  position: fixed;
+  z-index: 35;
+  inset: 0;
+  display: block;
+  overflow-y: auto;
+  padding: 0;
+  background: var(--app-bg, #0b0614);
+  backdrop-filter: none;
+  animation: none;
+}
+.profile-page-card {
+  width: 100%;
+  min-height: 100dvh;
+  max-height: none;
+  overflow: visible;
+  margin: 0;
+  padding: clamp(22px, 5vw, 48px) clamp(18px, 7vw, 90px) 42px;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface, #100b1b);
+  box-shadow: none;
+  animation: none;
+}
+.profile-page-card > form { width: min(100%, 620px); margin: 0 auto; }
+.profile-page-card > .modal-heading { width: min(100%, 620px); margin: 0 auto 26px; }
+.profile-page-card .modal-heading h2 { font-size: clamp(23px, 4vw, 32px); }
+.profile-page-card .profile-photo-edit { margin: 26px 0 34px; }
+.profile-page-card .profile-photo-large { padding: 5px; }
+.profile-page-card .text-field { min-height: 48px; font-size: 13px; }
+.profile-page-card .about-field { min-height: 110px; }
+.profile-page-card .form-label { font-size: 12px; }
+.profile-signout-area { width: min(100%, 620px); margin: 34px auto 0; padding-top: 22px; border-top: 1px solid rgba(190,145,230,.14); }
+.profile-signout-button { display: inline-flex; min-height: 44px; align-items: center; gap: 9px; padding: 0 15px; border: 1px solid rgba(255,100,130,.28); border-radius: 11px; color: #ff829c; background: rgba(255,80,120,.07); font-size: 12px; font-weight: 700; cursor: pointer; }
+.profile-signout-button:hover { border-color: rgba(255,100,130,.55); background: rgba(255,80,120,.13); }
+.profile-signout-button:disabled { opacity: .5; cursor: not-allowed; }
+:root[data-theme="light"] .profile-page-backdrop { background:#fff; }
+:root[data-theme="light"] .profile-page-card { background:#fff; }
+:root[data-theme="light"] .profile-signout-area { border-top-color:#eee3f5; }
+@media(max-width:640px) {
+  .profile-page-card { padding: 20px 18px calc(28px + env(safe-area-inset-bottom)); }
+  .profile-page-card > .modal-heading { margin-bottom: 18px; }
+  .profile-page-card .profile-photo-edit { margin: 20px 0 28px; }
+}
