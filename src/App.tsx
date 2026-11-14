@@ -408,7 +408,7 @@ function App() {
         <button className="rail-avatar" type="button" onClick={() => setShowProfile(true)} aria-label="Open your profile"><Avatar profile={profile} size="sm" /></button>
       </aside>
 
-      <section className={`inbox-panel ${mobileList ? 'inbox-panel-mobile-open' : ''}`}>
+      <section className={`inbox-panel ${mobileList && mobileTab === 'chats' ? 'inbox-panel-mobile-open' : ''}`}>
         <header className="inbox-header reference-inbox-header">
           <div className="reference-brand-row">
             <div className="reference-brand"><Crown size={30} strokeWidth={2.4} fill="currentColor" /><h1>LANChat</h1></div>
