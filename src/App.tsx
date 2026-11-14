@@ -232,14 +232,20 @@ function App() {
   }, []);
 
   function handleAppTouchStart(event: TouchEvent<HTMLElement>) {
+    // Page swipes belong to the inbox/status/profile screens only, never an open chat.
+    if (!mobileList && !showProfile) return;
     const target = event.target as HTMLElement;
-    if (target.closest('input, textarea, button, .message-bubble, .story-viewer-backdrop, .peer-profile-page') || (target.closest('.modal-backdrop') && !target.closest('.profile-modal'))) return;
+    if (target.closest('input, textarea, select, button, .message-bubble, .story-viewer-backdrop, .peer-profile-page, .avatar-crop-page, .stories-track, .inbox-category-tabs, .thread-list')) return;
+    if (target.closest('.modal-backdrop')) return;
     const touch = event.touches[0];
     swipeStart.current = { x: touch.clientX, y: touch.clientY };
   }
 
   function handleAppTouchEnd(event: TouchEvent<HTMLElement>) {
-    if (!swipeStart.current) return;
+    if (!swipeStart.current || (!mobileList && !showProfile)) {
+      swipeStart.current = null;
+      return;
+    }
     const start = swipeStart.current;
     swipeStart.current = null;
     const touch = event.changedTouches[0];
@@ -247,11 +253,11 @@ function App() {
     const dy = touch.clientY - start.y;
     if (Math.abs(dx) < 75 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
     if (dx < 0) {
-      if (mobileTab === 'chats') { setMobileTab('status'); setMobileList(true); }
-      else if (mobileTab === 'status') { setMobileTab('profile'); setShowProfile(true); }
+      if (mobileTab === 'chats' && mobileList) { setMobileTab('status'); setMobileList(true); }
+      else if (mobileTab === 'status' && mobileList) { setMobileTab('profile'); setShowProfile(true); }
     } else {
-      if (mobileTab === 'profile') { setShowProfile(false); setMobileTab('status'); }
-      else if (mobileTab === 'status') { setMobileTab('chats'); setMobileList(true); }
+      if (mobileTab === 'profile' && showProfile) { setShowProfile(false); setMobileTab('status'); setMobileList(true); }
+      else if (mobileTab === 'status' && mobileList) { setMobileTab('chats'); setMobileList(true); }
     }
   }
 
