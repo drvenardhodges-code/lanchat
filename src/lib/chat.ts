@@ -186,7 +186,7 @@ export async function sendChatMessage(chatId: string, senderId: string, text: st
 }
 
 
-export async function sendStoryReply(senderId: string, recipientId: string, senderName: string, story: { id: string; text: string; mediaType: string }, replyText: string) {
+export async function sendStoryReply(senderId: string, recipientId: string, story: { id: string; text: string; mediaType: string; userName: string }, replyText: string) {
   const firestore = requireDb();
   const chatsQuery = query(collection(firestore, 'chats'), where('participants', 'array-contains', senderId), limit(80));
   const snapshot = await getDocs(chatsQuery);
@@ -204,7 +204,7 @@ export async function sendStoryReply(senderId: string, recipientId: string, send
   await sendChatMessage(chatId, senderId, replyText, {
     messageId: story.id,
     text: preview,
-    senderName: `${senderName}'s status`,
+    senderName: `${story.userName}'s status`,
   });
 }
 
