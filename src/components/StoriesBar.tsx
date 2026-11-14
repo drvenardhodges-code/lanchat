@@ -30,7 +30,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const [stories, setStories] = useState<StoryItem[]>([]);
   const [now, setNow] = useState(Date.now());
   const [composerOpen, setComposerOpen] = useState(false);
-  const [viewer, setViewer] = useState<{ groupIndex: number; storyIndex: number } | null>(null);
+  const [viewer, setViewer] = useState<{ groupIndex: number; storyIndex: number } | null>(null);\n  const [storyDirection, setStoryDirection] = useState<'next' | 'previous'>('next');
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -300,7 +300,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
             <button type="button" className="story-close" onClick={() => setViewer(null)} aria-label="Close story"><X size={20} /></button>
           </header>
           <div
-            className={'story-viewer-content ' + (activeStory.mediaType === 'text' ? 'story-text-content' : '')}
+            key={activeStory.id}\n            className={'story-viewer-content story-transition-' + storyDirection + ' ' + (activeStory.mediaType === 'text' ? 'story-text-content' : '')}
             onTouchStart={handleStoryTouchStart}
             onTouchEnd={handleStoryTouchEnd}
             onTouchCancel={() => { touchStartRef.current = null; }}
@@ -337,4 +337,21 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       </div>}
     </section>
   );
+}
+
+
+/* WhatsApp-like horizontal slide between consecutive status updates. */
+.story-viewer-content.story-transition-next { animation: story-swipe-next 230ms cubic-bezier(.22,.61,.36,1) both; }
+.story-viewer-content.story-transition-previous { animation: story-swipe-previous 230ms cubic-bezier(.22,.61,.36,1) both; }
+@keyframes story-swipe-next {
+  from { opacity: .72; transform: translate3d(7%,0,0); }
+  to { opacity: 1; transform: translate3d(0,0,0); }
+}
+@keyframes story-swipe-previous {
+  from { opacity: .72; transform: translate3d(-7%,0,0); }
+  to { opacity: 1; transform: translate3d(0,0,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-viewer-content.story-transition-next,
+  .story-viewer-content.story-transition-previous { animation-duration: .01ms; }
 }
