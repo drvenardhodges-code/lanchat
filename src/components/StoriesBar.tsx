@@ -191,7 +191,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
     if (!message || !user || !activeStory || activeStory.userId === user.uid || demoMode || sendingReply) return;
     setSendingReply(true);
     try {
-      await sendStoryReply(user.uid, activeStory.userId, profile.name, activeStory, message);
+      await sendStoryReply(user.uid, activeStory.userId, activeStory, message);
       setStoryReply('');
       onNotice('Reply sent to chat. 💜');
     } catch {
