@@ -495,17 +495,19 @@ function App() {
         </header>
         <StoriesBar user={firebaseUser ? { uid: firebaseUser.uid } : null} profile={profile} demoMode={demoMode} onNotice={showNotice} />
       </section>
-      <nav className="mobile-bottom-nav" aria-label="Main navigation">
-        <button type="button" className={mobileTab === 'chats' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('chats'); setMobileList(true); setShowProfile(false); }} aria-label="Chats">
-          <MessageCircle size={22} strokeWidth={2.2} /><span>Chats</span>
-        </button>
-        <button type="button" className={mobileTab === 'status' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('status'); setMobileList(true); setShowProfile(false); }} aria-label="Status">
-          <CircleDot size={22} strokeWidth={2.1} /><span>Status</span>
-        </button>
-        <button type="button" className="mobile-nav-item" onClick={() => { setMobileTab('profile'); setShowProfile(true); }} aria-label="Profile">
-          <UserRound size={22} strokeWidth={2.1} /><span>Profile</span>
-        </button>
-      </nav>
+      {!showProfile && (
+        <nav className="mobile-bottom-nav" aria-label="Main navigation">
+          <button type="button" className={mobileTab === 'chats' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('chats'); setMobileList(true); setShowProfile(false); }} aria-label="Chats">
+            <MessageCircle size={22} strokeWidth={2.2} /><span>Chats</span>
+          </button>
+          <button type="button" className={mobileTab === 'status' ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => { setMobileTab('status'); setMobileList(true); setShowProfile(false); }} aria-label="Status">
+            <CircleDot size={22} strokeWidth={2.1} /><span>Status</span>
+          </button>
+          <button type="button" className="mobile-nav-item" onClick={() => { setMobileTab('profile'); setShowProfile(true); }} aria-label="Profile">
+            <UserRound size={22} strokeWidth={2.1} /><span>Profile</span>
+          </button>
+        </nav>
+      )}
       {showNewChat && <NewChatDialog onClose={() => setShowNewChat(false)} onStart={handleNewChat} demoMode={demoMode} contacts={demoUsers} />}
       {showProfile && <ProfileDialog profile={profile} onClose={() => { setShowProfile(false); setMobileTab('chats'); }} onSave={handleSaveProfile} onSignOut={firebaseUser ? handleSignOut : undefined} busy={busy} />}
       {notice && <div className="toast" role="status"><span className="toast-check"><Check size={14} /></span>{notice}<button type="button" aria-label="Dismiss" onClick={() => setNotice('')}><X size={15} /></button></div>}
