@@ -140,6 +140,11 @@ export function subscribeToMessages(chatId: string, onChange: (messages: ChatMes
         senderId: String(data.senderId ?? ''),
         createdAt: toDate(data.createdAt),
         reactions: reactionValues.get(entry.id) ?? [],
+        replyTo: data.replyTo && typeof data.replyTo === 'object' ? {
+          messageId: String((data.replyTo as Record<string, unknown>).messageId ?? ''),
+          text: String((data.replyTo as Record<string, unknown>).text ?? ''),
+          senderName: String((data.replyTo as Record<string, unknown>).senderName ?? ''),
+        } : null,
       };
     });
     onChange(latestMessages);
@@ -167,12 +172,12 @@ export function subscribeToMessages(chatId: string, onChange: (messages: ChatMes
   };
 }
 
-export async function sendChatMessage(chatId: string, senderId: string, text: string) {
+export async function sendChatMessage(chatId: string, senderId: string, text: string, replyTo?: { messageId: string; text: string; senderName: string } | null) {
   const firestore = requireDb();
   const chatRef = doc(firestore, 'chats', chatId);
   const batch = writeBatch(firestore);
   const messageRef = doc(collection(chatRef, 'messages'));
-  batch.set(messageRef, { text, senderId, createdAt: serverTimestamp() });
+  batch.set(messageRef, { text, senderId, createdAt: serverTimestamp(), ...(replyTo ? { replyTo } : {}) });
   batch.update(chatRef, {
     lastMessage: { text, senderId, createdAt: serverTimestamp() },
     updatedAt: serverTimestamp(),
