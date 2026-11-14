@@ -407,12 +407,6 @@ function App() {
             </div>
           </div>
           {showInboxSearch && <label className="search-box reference-search-box"><Search size={16} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a conversation" aria-label="Search conversations" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} /></button>}</label>}
-          <button className="reference-my-status" type="button" onClick={() => { setMobileTab('status'); setMobileList(true); }}>
-            <span className="reference-status-avatar"><Avatar profile={profile} size="md" /><i><Plus size={11} /></i></span>
-            <span className="reference-status-copy"><strong>My Status</strong><small>Tap to add status</small></span>
-            <span className="reference-status-camera"><MessageCircle size={19} /></span>
-          </button>
-          <div className="reference-inbox-tabs"><button className="active" type="button" onClick={() => { setMobileTab('chats'); setMobileList(true); }}>Chats <b>{threads.length}</b></button><button type="button" onClick={() => { setMobileTab('status'); setMobileList(true); }}>Status</button><button type="button" onClick={() => setShowProfile(true)}>Profile</button></div>
         </header>
         <div className="thread-list reference-thread-list">
           {filteredThreads.length > 0 ? filteredThreads.map((thread, index) => {
