@@ -30,7 +30,8 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const [stories, setStories] = useState<StoryItem[]>([]);
   const [now, setNow] = useState(Date.now());
   const [composerOpen, setComposerOpen] = useState(false);
-  const [viewer, setViewer] = useState<{ groupIndex: number; storyIndex: number } | null>(null);\n  const [storyDirection, setStoryDirection] = useState<'next' | 'previous'>('next');
+  const [viewer, setViewer] = useState<{ groupIndex: number; storyIndex: number } | null>(null);
+  const [storyDirection, setStoryDirection] = useState<'next' | 'previous'>('next');
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -340,21 +341,4 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       </div>}
     </section>
   );
-}
-
-
-/* WhatsApp-like horizontal slide between consecutive status updates. */
-.story-viewer-content.story-transition-next { animation: story-swipe-next 230ms cubic-bezier(.22,.61,.36,1) both; }
-.story-viewer-content.story-transition-previous { animation: story-swipe-previous 230ms cubic-bezier(.22,.61,.36,1) both; }
-@keyframes story-swipe-next {
-  from { opacity: .72; transform: translate3d(7%,0,0); }
-  to { opacity: 1; transform: translate3d(0,0,0); }
-}
-@keyframes story-swipe-previous {
-  from { opacity: .72; transform: translate3d(-7%,0,0); }
-  to { opacity: 1; transform: translate3d(0,0,0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .story-viewer-content.story-transition-next,
-  .story-viewer-content.story-transition-previous { animation-duration: .01ms; }
 }
