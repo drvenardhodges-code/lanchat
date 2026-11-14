@@ -1468,10 +1468,9 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 
 /* WhatsApp-like horizontal page transitions on mobile navigation. */
 @media (max-width: 640px) {
+  /* Animate only the main inbox and status screens. Conversation view stays independent. */
   .inbox-panel,
-  .chat-panel,
   .status-page {
-    display: flex !important;
     transition: transform 280ms cubic-bezier(.22,.61,.36,1), opacity 220ms ease;
     will-change: transform;
     backface-visibility: hidden;
@@ -1482,14 +1481,6 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
   }
   .inbox-panel.inbox-panel-mobile-open {
     transform: translate3d(0,0,0);
-  }
-  .chat-panel {
-    transform: translate3d(0,0,0);
-    z-index: 5;
-  }
-  .chat-panel.chat-panel-mobile-hidden {
-    transform: translate3d(100%,0,0);
-    pointer-events: none;
   }
   .status-page {
     display: block !important;
@@ -1515,7 +1506,7 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
   to { transform: translate3d(0,0,0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .inbox-panel, .chat-panel, .status-page, .profile-page-backdrop, .peer-profile-page {
+  .inbox-panel, .status-page, .profile-page-backdrop, .peer-profile-page {
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
   }
