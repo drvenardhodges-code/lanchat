@@ -1294,3 +1294,59 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 :root[data-theme="light"] .thread-favorite-button{color:#a28eaf}
 :root[data-theme="light"] .thread-favorite-button.is-favorite{color:#c58a18}
 @media(max-width:640px){.inbox-category-tabs{gap:7px;padding-bottom:12px}.inbox-category-tabs button{padding:8px 13px;font-size:10px}.reference-thread-card .thread-card-open{gap:10px}}
+
+
+/* Conversation cards: separate rounded glass surfaces, never square list rows. */
+.reference-thread-list {
+  gap: 10px;
+  padding: 12px 13px 100px;
+  background: #0b0614;
+}
+.reference-thread-card {
+  min-height: 78px;
+  margin: 0;
+  padding: 10px 9px;
+  border: 1px solid rgba(178,112,226,.2);
+  border-radius: 19px;
+  background: linear-gradient(135deg,rgba(66,31,91,.42),rgba(24,13,37,.76));
+  box-shadow: 0 7px 20px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.035);
+  transition: border-color .18s,background .18s,box-shadow .18s,transform .18s;
+}
+.reference-thread-card:hover {
+  border-color: rgba(194,126,255,.48);
+  background: linear-gradient(135deg,rgba(89,42,122,.48),rgba(31,16,47,.86));
+  box-shadow: 0 9px 24px rgba(0,0,0,.2),0 0 15px rgba(157,70,225,.08);
+  transform: translateY(-1px);
+}
+.reference-thread-card.selected {
+  border-color: rgba(203,139,255,.68);
+  background: linear-gradient(120deg,rgba(110,49,157,.43),rgba(42,20,63,.9));
+  box-shadow: 0 0 0 1px rgba(190,112,255,.1),0 8px 22px rgba(111,42,164,.16);
+}
+.reference-thread-card .thread-title-row time {
+  padding: 4px 7px;
+  border: 1px solid rgba(192,132,252,.13);
+  border-radius: 999px;
+  background: rgba(139,92,246,.08);
+}
+:root[data-theme="light"] .reference-thread-list { background:#fff; }
+:root[data-theme="light"] .reference-thread-card {
+  border:1px solid #eadcf8;
+  border-radius:19px;
+  background:linear-gradient(135deg,#fff,#fbf6ff);
+  box-shadow:0 7px 19px rgba(78,39,112,.07),inset 0 1px 0 #fff;
+}
+:root[data-theme="light"] .reference-thread-card:hover {
+  border-color:#d5b6f3;
+  background:linear-gradient(135deg,#fff,#f8efff);
+  box-shadow:0 10px 23px rgba(98,47,155,.11);
+}
+:root[data-theme="light"] .reference-thread-card.selected {
+  border-color:#c99aef;
+  background:linear-gradient(115deg,#f1e5ff,#fff7ff);
+  box-shadow:0 0 0 1px rgba(168,85,247,.08),0 9px 22px rgba(98,47,155,.1);
+}
+@media(max-width:640px) {
+  .reference-thread-list { gap:10px; padding:11px 12px calc(90px + env(safe-area-inset-bottom)); }
+  .reference-thread-card { min-height:78px; padding:10px 9px; border-radius:19px; }
+}
