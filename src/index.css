@@ -1276,3 +1276,21 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 .status-page .stories-track{flex-direction:row;align-items:flex-start;gap:13px;overflow-x:auto;overflow-y:hidden}
 :root[data-theme="light"] .stories-track>.story-person .story-person-name,
 :root[data-theme="light"] .status-page .stories-track>.story-person .story-person-name{color:#887697}
+
+
+/* Inbox filters: compact premium category pills and accessible favorite controls. */
+.inbox-category-tabs{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:2px 0 13px;scrollbar-width:none}
+.inbox-category-tabs::-webkit-scrollbar{display:none}
+.inbox-category-tabs button{flex:0 0 auto;padding:8px 15px;border:1px solid rgba(190,145,230,.2);border-radius:999px;color:#c5afd8;background:rgba(255,255,255,.045);font-size:11px;font-weight:700;cursor:pointer;transition:all .18s ease}
+.inbox-category-tabs button.active{border-color:rgba(206,145,255,.65);color:#fff;background:linear-gradient(110deg,#a83de9,#7130c8);box-shadow:0 4px 15px rgba(145,55,220,.25)}
+.reference-thread-card{position:relative;display:flex;align-items:center}
+.reference-thread-card .thread-card-open{display:flex;min-width:0;flex:1;align-items:center;gap:12px;padding:0;border:0;color:inherit;background:transparent;text-align:left;cursor:pointer}
+.reference-thread-card .thread-copy{min-width:0;flex:1}
+.thread-favorite-button{display:grid;width:34px;height:34px;flex:0 0 34px;place-items:center;border:0;border-radius:50%;color:#8f7ba3;background:transparent;cursor:pointer}
+.thread-favorite-button.is-favorite{color:#e8b84d;filter:drop-shadow(0 0 5px rgba(232,184,77,.28))}
+.inbox-unread-dot{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#c46cff;box-shadow:0 0 9px rgba(196,108,255,.7)}
+:root[data-theme="light"] .inbox-category-tabs button{border-color:#e9dcf4;color:#846c98;background:#fff}
+:root[data-theme="light"] .inbox-category-tabs button.active{border-color:#a957e6;color:#fff;background:linear-gradient(110deg,#a83de9,#7130c8)}
+:root[data-theme="light"] .thread-favorite-button{color:#a28eaf}
+:root[data-theme="light"] .thread-favorite-button.is-favorite{color:#c58a18}
+@media(max-width:640px){.inbox-category-tabs{gap:7px;padding-bottom:12px}.inbox-category-tabs button{padding:8px 13px;font-size:10px}.reference-thread-card .thread-card-open{gap:10px}}
