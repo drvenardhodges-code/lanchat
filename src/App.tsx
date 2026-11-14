@@ -75,6 +75,8 @@ function App() {
   const [mobileTab, setMobileTab] = useState<'chats' | 'status' | 'profile'>('chats');
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const seenThreadUpdates = useRef<Map<string, string> | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const messageEnd = useRef<HTMLDivElement>(null);
@@ -129,7 +131,21 @@ function App() {
       return;
     }
     if (!firebaseUser) return;
-    return subscribeToThreads(firebaseUser.uid, setThreads, (error) => showNotice(error.message));
+    seenThreadUpdates.current = null;
+    return subscribeToThreads(firebaseUser.uid, (nextThreads) => {
+      const signature = (thread: Thread) => thread.lastMessage ? `${thread.lastMessage.createdAt.getTime()}|${thread.lastMessage.senderId}|${thread.lastMessage.text}` : '';
+      const previous = seenThreadUpdates.current;
+      if (previous) {
+        const hasIncoming = nextThreads.some((thread) => {
+          const nextSignature = signature(thread);
+          const changed = nextSignature && previous.get(thread.id) !== nextSignature;
+          return Boolean(changed && thread.lastMessage?.senderId !== firebaseUser.uid);
+        });
+        if (hasIncoming) playIncomingTone();
+      }
+      seenThreadUpdates.current = new Map(nextThreads.map((thread) => [thread.id, signature(thread)]));
+      setThreads(nextThreads);
+    }, (error) => showNotice(error.message));
   }, [demoMode, firebaseUser?.uid]);
 
   useEffect(() => {
@@ -174,6 +190,37 @@ function App() {
     setNotice(text);
     window.setTimeout(() => setNotice(''), 3600);
   }
+
+  function playIncomingTone() {
+    try {
+      const context = audioContextRef.current ?? new window.AudioContext();
+      audioContextRef.current = context;
+      if (context.state === 'suspended') void context.resume();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, context.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(660, context.currentTime + 0.16);
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.22);
+      oscillator.connect(gain); gain.connect(context.destination);
+      oscillator.start(); oscillator.stop(context.currentTime + 0.23);
+    } catch { /* Sound is optional; keep chat working when audio is unavailable. */ }
+  }
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      try {
+        const context = audioContextRef.current ?? new window.AudioContext();
+        audioContextRef.current = context;
+        if (context.state === 'suspended') void context.resume();
+      } catch { /* Audio may be unavailable on this browser. */ }
+    };
+    window.addEventListener('pointerdown', unlockAudio, { once: true });
+    window.addEventListener('keydown', unlockAudio, { once: true });
+    return () => { window.removeEventListener('pointerdown', unlockAudio); window.removeEventListener('keydown', unlockAudio); };
+  }, []);
 
   function handleAppTouchStart(event: TouchEvent<HTMLElement>) {
     const target = event.target as HTMLElement;
