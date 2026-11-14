@@ -932,3 +932,14 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 .app-shell:has(.modal-backdrop) .app-rail {
   display: none !important;
 }
+
+
+/* Swipe-to-reply message preview and quoted reply styling. */
+.reply-composer-preview { position:absolute; right:14px; bottom:calc(100% + 8px); left:14px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid rgba(167,139,250,.25); border-left:3px solid #a78bfa; border-radius:12px; color:var(--text); background:var(--panel, #171020); box-shadow:0 8px 28px rgba(0,0,0,.16); }
+.reply-composer-preview > span { display:flex; min-width:0; flex-direction:column; gap:3px; }
+.reply-composer-preview strong { font-size:11px; color:#a78bfa; }
+.reply-composer-preview small { overflow:hidden; color:var(--muted); font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.reply-composer-preview button { display:grid; width:28px; height:28px; flex:0 0 auto; place-items:center; border:0; border-radius:50%; color:var(--muted); background:rgba(139,92,246,.12); }
+.message-reply-quote { display:flex; flex-direction:column; gap:3px; margin:0 0 7px; padding:6px 8px; border-left:3px solid #a78bfa; border-radius:5px; color:var(--muted); background:rgba(139,92,246,.1); font-size:11px; }
+.message-reply-quote strong { color:#a78bfa; font-size:10px; }
+.composer { position:relative; }
