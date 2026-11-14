@@ -3,7 +3,7 @@ import { addDoc, collection, deleteDoc, doc, getDoc, limit, onSnapshot, orderBy,
 import { Eye, Heart, ImagePlus, LoaderCircle, Plus, Send, Trash2, Video, X, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { db } from '../lib/firebase';
-import { uploadStoryMedia } from '../lib/chat';
+import { uploadStoryMedia, sendStoryReply } from '../lib/chat';
 import type { Profile } from '../types';
 
 type StoryItem = {
@@ -39,6 +39,8 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
   const [viewers, setViewers] = useState<{ userId: string; userName: string; photoURL: string }[]>([]);
   const [likers, setLikers] = useState<{ userId: string; userName: string; photoURL: string }[]>([]);
   const [hasReacted, setHasReacted] = useState(false);
+  const [storyReply, setStoryReply] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
   const [engagementSheet, setEngagementSheet] = useState<'views' | 'likes' | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -182,6 +184,21 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
       stopMyReaction?.();
     };
   }, [viewer?.groupIndex, viewer?.storyIndex, activeStory?.id, user?.uid, profile.name]);
+
+  async function submitStoryReply(event: FormEvent) {
+    event.preventDefault();
+    const message = storyReply.trim();
+    if (!message || !user || !activeStory || activeStory.userId === user.uid || demoMode || sendingReply) return;
+    setSendingReply(true);
+    try {
+      await sendStoryReply(user.uid, activeStory.userId, profile.name, activeStory, message);
+      setStoryReply('');
+      onNotice('Reply sent to chat. 💜');
+    } catch {
+      onNotice('Could not send your status reply. Please try again.');
+    } finally { setSendingReply(false); }
+  }
+
   async function toggleReaction() {
     if (!db || !user || !activeStory) return;
     const reactionRef = doc(db, 'stories', activeStory.id, 'reactions', user.uid);
@@ -303,7 +320,7 @@ export function StoriesBar({ user, profile, demoMode, onNotice }: {
                   <span><Heart size={17} /> Like</span><strong>{likers.length}</strong>
                 </button>
               </div>
-            </> : <button type="button" className={hasReacted ? 'story-react-button story-reacted' : 'story-react-button'} onClick={() => void toggleReaction()} aria-label={hasReacted ? 'Remove reaction' : 'Like story'}><Heart size={18} fill={hasReacted ? 'currentColor' : 'none'} /> {hasReacted ? 'Liked' : 'Like'}</button>}
+            </> : <div className="story-viewer-actions"><button type="button" className={hasReacted ? 'story-react-button story-reacted' : 'story-react-button'} onClick={() => void toggleReaction()} aria-label={hasReacted ? 'Remove reaction' : 'Like story'}><Heart size={18} fill={hasReacted ? 'currentColor' : 'none'} /> {hasReacted ? 'Liked' : 'Like'}</button>{user && !demoMode && <form className="story-reply-form" onSubmit={submitStoryReply}><input value={storyReply} onChange={(event) => setStoryReply(event.target.value)} maxLength={500} placeholder="Reply to status…" aria-label="Reply to status" /><button type="submit" disabled={!storyReply.trim() || sendingReply} aria-label="Send status reply">{sendingReply ? <LoaderCircle size={17} className="spin" /> : <Send size={17} />}</button></form>}</div>}
           </footer>
         </div>
       </div>}
