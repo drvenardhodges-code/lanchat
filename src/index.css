@@ -825,3 +825,13 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
 .peer-profile-details p { margin:8px 0 0; font-size:14px; }
 .peer-profile-details > button { display:flex; align-items:center; gap:10px; padding:16px 0; border:0; color:#dc4566; background:transparent; text-align:left; font:inherit; cursor:pointer; }
 :root[data-theme="dark"] .chat-options-menu,:root[data-theme="dark"] .peer-profile-page,:root[data-theme="dark"] .peer-profile-header { color:#eee7fa; background:#120d1e; border-color:rgba(196,181,253,.14); }
+
+/* Story owner engagement: live viewers and likes */
+.story-owner-metrics { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; }
+.story-owner-metric { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 13px; border:1px solid rgba(139,92,246,.22); border-radius:13px; background:rgba(139,92,246,.09); }
+.story-owner-metric span { display:flex; align-items:center; gap:7px; color:var(--text); font-size:12px; }
+.story-owner-metric strong { color:var(--text); font-size:17px; font-variant-numeric:tabular-nums; }
+.story-engagement-people { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-height:145px; overflow:auto; }
+.story-engagement-people section { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.story-engagement-people section > strong { color:var(--text); font-size:10px; }
+.story-engagement-people section > span,.story-engagement-people section > small { overflow:hidden; color:var(--muted); font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
