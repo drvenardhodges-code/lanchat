@@ -90,7 +90,9 @@ service cloud.firestore {
         allow create, update: if signedIn()
           && request.auth.uid == viewerId
           && request.resource.data.userId == request.auth.uid
-          && request.resource.data.keys().hasOnly(['userId', 'userName', 'viewedAt'])
+          && request.resource.data.keys().hasOnly(['userId', 'userName', 'photoURL', 'viewedAt'])
+          && request.resource.data.userName is string
+          && (!('photoURL' in request.resource.data) || request.resource.data.photoURL is string)
           && request.resource.data.viewedAt is timestamp;
         allow get: if signedIn()
           && (request.auth.uid == viewerId
@@ -107,7 +109,9 @@ service cloud.firestore {
           && request.auth.uid == reactorId
           && request.resource.data.userId == request.auth.uid
           && request.resource.data.emoji == '❤️'
-          && request.resource.data.keys().hasOnly(['userId', 'userName', 'emoji', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['userId', 'userName', 'photoURL', 'emoji', 'createdAt'])
+          && request.resource.data.userName is string
+          && (!('photoURL' in request.resource.data) || request.resource.data.photoURL is string)
           && request.resource.data.createdAt is timestamp;
         allow delete: if signedIn() && request.auth.uid == reactorId;
       }
@@ -136,7 +140,12 @@ service cloud.firestore {
         allow get, list: if isChatMember(chatId);
         allow create: if isChatMember(chatId)
           && participantsNotBlocked(get(/databases/$(database)/documents/chats/$(chatId)).data.participants)
-          && request.resource.data.keys().hasOnly(['text', 'senderId', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['text', 'senderId', 'createdAt', 'replyTo'])
+          && (!('replyTo' in request.resource.data) || (request.resource.data.replyTo is map
+            && request.resource.data.replyTo.keys().hasOnly(['messageId', 'text', 'senderName'])
+            && request.resource.data.replyTo.messageId is string
+            && request.resource.data.replyTo.text is string
+            && request.resource.data.replyTo.senderName is string))
           && request.resource.data.senderId == request.auth.uid
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
