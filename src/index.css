@@ -871,3 +871,24 @@ button, input, textarea { -webkit-tap-highlight-color: transparent; }
     border-radius: 0;
   }
 }
+
+
+/* Status engagement lists open as a compact bottom sheet. */
+.story-owner-metric { width:100%; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.story-owner-metric:active { transform:scale(.98); }
+.story-sheet-backdrop { position:fixed; z-index:140; inset:0; display:flex; align-items:flex-end; justify-content:center; background:rgba(5,3,10,.58); backdrop-filter:blur(3px); }
+.story-people-sheet { width:100%; max-width:560px; height:min(52dvh,460px); min-height:230px; padding:10px 18px calc(18px + env(safe-area-inset-bottom)); overflow:hidden; border:1px solid rgba(167,139,250,.22); border-bottom:0; border-radius:22px 22px 0 0; color:#eee7fa; background:#171020; box-shadow:0 -14px 50px rgba(0,0,0,.32); animation:story-sheet-rise .22s ease-out; }
+.story-sheet-handle { width:38px; height:4px; margin:0 auto 16px; border-radius:99px; background:rgba(196,181,253,.38); }
+.story-people-sheet header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:13px; border-bottom:1px solid rgba(196,181,253,.14); }
+.story-people-sheet header div { display:flex; flex-direction:column; gap:3px; }
+.story-people-sheet header strong { font-size:15px; }
+.story-people-sheet header small { color:#b7a9c9; font-size:11px; }
+.story-people-sheet header button { display:grid; place-items:center; width:34px; height:34px; border:0; border-radius:50%; color:inherit; background:rgba(196,181,253,.1); cursor:pointer; }
+.story-sheet-list { height:calc(100% - 66px); padding-top:8px; overflow-y:auto; }
+.story-sheet-person { display:flex; align-items:center; gap:11px; min-height:54px; border-bottom:1px solid rgba(196,181,253,.09); font-size:13px; }
+.story-sheet-empty { padding:25px 8px; color:#b7a9c9; text-align:center; font-size:13px; }
+:root[data-theme="light"] .story-people-sheet { color:#39264f; background:#fff; border-color:#eee4fa; }
+:root[data-theme="light"] .story-people-sheet header { border-color:#eee7f8; }
+:root[data-theme="light"] .story-people-sheet header small,:root[data-theme="light"] .story-sheet-empty { color:#88769b; }
+:root[data-theme="light"] .story-sheet-person { border-color:#f0eaf7; }
+@keyframes story-sheet-rise { from { transform:translateY(28px); opacity:.7; } to { transform:translateY(0); opacity:1; } }
