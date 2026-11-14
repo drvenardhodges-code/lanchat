@@ -30,7 +30,7 @@ export function AuthGate() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!auth) {
-      setError('Firebase is not configured. Check the Firebase web app settings.');
+      setError('Sign-in is temporarily unavailable. Please try again later.');
       return;
     }
     setBusy(true);
@@ -68,7 +68,7 @@ export function AuthGate() {
     setMessage('');
     try {
       await sendPasswordResetEmail(auth, email.trim());
-      setMessage('If an account uses that email, Firebase will send a password reset link.');
+      setMessage('If an account uses that email, a password reset link will be sent.');
     } catch (issue) {
       setError(friendlyAuthError(issue));
     } finally {
